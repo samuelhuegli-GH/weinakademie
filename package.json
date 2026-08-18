@@ -1,0 +1,10 @@
+{
+  "name": "weinakademie-rickenbach",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Weinakademie Rickenbach – interaktive Lernplattform mit zentraler Mediathek (Netlify Functions + Blobs)",
+  "dependencies": {
+    "@netlify/blobs": "^8.1.0"
+  }
+}

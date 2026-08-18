@@ -1,0 +1,10 @@
+# Netlify-Konfiguration für die Weinakademie Rickenbach
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+# Schöner API-Pfad (optional): /api/media -> Function "media"
+[[redirects]]
+  from = "/api/media"
+  to = "/.netlify/functions/media"
+  status = 200

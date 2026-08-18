@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Weinakademie Rickenbach",
+  "schemaVersion": 1,
+  "description": "Interaktive Wein-Lernplattform „Weinakademie Rickenbach\" mit 8 Lernstationen (Rebsorten, Reblaus, Sensorik, Flüsse, Handwerk, Schweiz, Europa, Neue Welt), Quiz mit Punkten & 5 Levels, Degustations-Simulator, Video-Mediathek und druckbarem Diplom. Basiert auf der Wein-Zusammenfassung v2.2.",
+  "mcpTools": [],
+  "mcpServerNames": []
+}
+</script>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weinakademie Rickenbach – Interaktives Lernerlebnis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bordeaux:#4a0e1f;
+  --bordeaux-deep:#320813;
+  --bordeaux-light:#6d1a30;
+  --wine:#7b1e3a;
+  --gold:#c9a24b;
+  --gold-bright:#e6c877;
+  --cream:#f4ead6;
+  --ink:#2a1519;
+  --parchment:#f7f1e3;
+  --shadow:rgba(0,0,0,.45);
+  --ok:#4e8d5b;
+  --bad:#a33b3b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  color:var(--cream);
+  background:
+    radial-gradient(1200px 700px at 50% -10%, #5a132a 0%, transparent 60%),
+    radial-gradient(900px 600px at 90% 110%, #360a19 0%, transparent 55%),
+    linear-gradient(160deg, #2c0812 0%, #1a040b 100%);
+  background-attachment:fixed;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.serif{font-family:'Cormorant Garamond',Georgia,serif}
+img{max-width:100%}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+/* ===== Top HUD ===== */
+.hud{
+  position:sticky;top:0;z-index:50;
+  backdrop-filter:blur(10px);
+  background:linear-gradient(180deg, rgba(26,4,11,.92), rgba(26,4,11,.72));
+  border-bottom:1px solid rgba(201,162,75,.25);
+}
+.hud-inner{max-width:1080px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none}
+.brand .mark{
+  width:40px;height:40px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold) 55%, #8a6a24);
+  display:grid;place-items:center;font-size:22px;box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.brand .name{line-height:1.05}
+.brand .name b{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;letter-spacing:.3px;color:var(--gold-bright)}
+.brand .name span{display:block;font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:#c9b48f;opacity:.8}
+.hud-right{margin-left:auto;display:flex;align-items:center;gap:18px}
+.stat{text-align:right;line-height:1.1}
+.stat b{font-size:19px;color:var(--gold-bright);font-family:'Cormorant Garamond',serif}
+.stat span{display:block;font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;color:#c9b48f;opacity:.75}
+.level-pill{display:flex;align-items:center;gap:9px;background:rgba(201,162,75,.12);border:1px solid rgba(201,162,75,.35);padding:7px 13px 7px 9px;border-radius:40px}
+.level-pill .lvl-ico{font-size:20px}
+.level-pill .lvl-txt{line-height:1.05}
+.level-pill .lvl-txt b{font-family:'Cormorant Garamond',serif;font-size:16px;color:var(--gold-bright)}
+.level-pill .lvl-txt span{display:block;font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:#c9b48f}
+.xpbar{height:5px;background:rgba(255,255,255,.08);position:relative}
+.xpbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--gold),var(--gold-bright));transition:width .7s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 12px rgba(230,200,119,.5)}
+
+/* ===== Screens ===== */
+.screen{display:none;animation:fade .5s ease}
+.screen.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.section-pad{padding:54px 0 80px}
+
+/* ===== Hero ===== */
+.hero{position:relative;text-align:center;padding:70px 20px 60px}
+.hero .kicker{letter-spacing:5px;text-transform:uppercase;font-size:12px;color:var(--gold);margin-bottom:18px}
+.hero h1{font-size:clamp(44px,8vw,92px);font-weight:700;line-height:.98;color:var(--cream);text-shadow:0 4px 30px rgba(0,0,0,.5)}
+.hero h1 em{font-style:italic;color:var(--gold-bright)}
+.hero p.lead{max-width:620px;margin:22px auto 0;font-size:18px;line-height:1.6;color:#e7d8c2}
+.cta-row{margin-top:34px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  padding:15px 30px;border-radius:44px;font-weight:600;font-size:15px;
+  transition:transform .15s, box-shadow .15s, background .2s;
+}
+.btn-gold{background:linear-gradient(180deg,var(--gold-bright),var(--gold));color:#3a2408;box-shadow:0 8px 26px rgba(201,162,75,.35)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 12px 32px rgba(201,162,75,.5)}
+.btn-ghost{border:1px solid rgba(244,234,214,.35);color:var(--cream)}
+.btn-ghost:hover{background:rgba(244,234,214,.08);transform:translateY(-2px)}
+.hero-orbs{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1}
+.orb{position:absolute;border-radius:50%;filter:blur(1px);opacity:.5;animation:float 9s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-26px)}}
+
+.feature-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:56px}
+.feature{background:rgba(255,255,255,.035);border:1px solid rgba(201,162,75,.18);border-radius:16px;padding:22px 18px;text-align:center}
+.feature .fi{font-size:30px}
+.feature h4{font-family:'Inter';font-size:14px;margin:10px 0 5px;color:var(--gold-bright)}
+.feature p{font-size:12.5px;color:#d8c6ad;line-height:1.5}
+
+/* ===== Section headers ===== */
+.sec-head{text-align:center;margin-bottom:38px}
+.sec-head .kicker{letter-spacing:4px;text-transform:uppercase;font-size:11px;color:var(--gold)}
+.sec-head h2{font-size:clamp(32px,5vw,52px);color:var(--cream);margin-top:8px}
+.sec-head p{color:#d8c6ad;max-width:560px;margin:12px auto 0;font-size:15.5px;line-height:1.6}
+
+/* ===== Cellar map ===== */
+.cellar{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.room{
+  position:relative;border-radius:18px;overflow:hidden;cursor:pointer;
+  background:linear-gradient(160deg, rgba(255,255,255,.06), rgba(0,0,0,.15));
+  border:1px solid rgba(201,162,75,.22);
+  padding:26px 24px;min-height:184px;display:flex;flex-direction:column;
+  transition:transform .18s, box-shadow .18s, border-color .2s;
+}
+.room:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.4);border-color:rgba(230,200,119,.6)}
+.room .rico{font-size:40px;filter:drop-shadow(0 3px 8px rgba(0,0,0,.4))}
+.room h3{font-size:27px;margin:14px 0 6px;color:var(--gold-bright)}
+.room p{font-size:13.5px;color:#dcccb2;line-height:1.5;flex:1}
+.room .rfoot{display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-size:12px}
+.room .rprog{color:#bfa985}
+.room .badge-tick{color:var(--ok);font-weight:700}
+.room .go{color:var(--gold);font-weight:600}
+.room.locked{opacity:.55;cursor:not-allowed}
+.room.done{border-color:rgba(78,141,91,.55)}
+.room .ribbon{position:absolute;top:14px;right:-30px;transform:rotate(38deg);background:var(--ok);color:#fff;font-size:10px;font-weight:700;letter-spacing:1px;padding:4px 34px}
+
+/* ===== Module view ===== */
+.mod-hero{border-radius:18px;padding:34px 30px;margin-bottom:26px;border:1px solid rgba(201,162,75,.25);
+  background:linear-gradient(150deg, rgba(123,30,58,.55), rgba(50,8,19,.4))}
+.mod-hero .rico{font-size:48px}
+.mod-hero h2{font-size:clamp(30px,5vw,46px);margin:10px 0 6px;color:var(--cream)}
+.mod-hero p{color:#e7d8c2;font-size:15.5px;max-width:640px}
+.lesson{background:rgba(255,255,255,.035);border:1px solid rgba(201,162,75,.16);border-radius:16px;padding:26px 28px;margin-bottom:18px}
+.lesson h3{font-size:26px;color:var(--gold-bright);margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.lesson h3 .n{width:30px;height:30px;border-radius:50%;background:rgba(201,162,75,.18);border:1px solid rgba(201,162,75,.4);display:grid;place-items:center;font-size:14px;font-family:'Inter';color:var(--gold-bright)}
+.lesson p{color:#e3d4bd;line-height:1.72;font-size:15px;margin-top:8px}
+.lesson ul{margin:10px 0 0 4px;list-style:none}
+.lesson li{color:#e3d4bd;line-height:1.65;font-size:14.5px;padding-left:22px;position:relative;margin-bottom:7px}
+.lesson li:before{content:'🍷';position:absolute;left:0;top:0;font-size:12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{background:rgba(201,162,75,.13);border:1px solid rgba(201,162,75,.3);border-radius:30px;padding:6px 14px;font-size:12.5px;color:var(--cream)}
+.factbox{background:linear-gradient(120deg,rgba(201,162,75,.14),rgba(201,162,75,.05));border-left:3px solid var(--gold);border-radius:10px;padding:14px 18px;margin-top:14px}
+.factbox b{color:var(--gold-bright)}
+.factbox p{margin-top:2px;font-size:14px}
+.diskbox{background:rgba(90,58,106,.18);border:1px dashed rgba(201,162,75,.4);border-radius:14px;padding:18px 22px;margin-top:20px}
+.diskbox .dk{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)}
+.diskbox p{font-family:'Cormorant Garamond',serif;font-size:22px;color:var(--cream);line-height:1.35;margin-top:6px}
+
+/* ===== Quiz ===== */
+.quiz-card{background:linear-gradient(160deg, rgba(30,6,14,.7), rgba(60,14,28,.5));border:1px solid rgba(201,162,75,.3);border-radius:18px;padding:30px 30px 26px}
+.quiz-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
+.quiz-top .qcount{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--gold)}
+.qdots{display:flex;gap:6px}
+.qdots i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.15)}
+.qdots i.cur{background:var(--gold-bright);box-shadow:0 0 8px var(--gold)}
+.qdots i.ok{background:var(--ok)}
+.qdots i.no{background:var(--bad)}
+.qtext{font-family:'Cormorant Garamond',serif;font-size:27px;line-height:1.25;color:var(--cream);margin-bottom:20px}
+.opts{display:flex;flex-direction:column;gap:11px}
+.opt{
+  text-align:left;padding:16px 18px;border-radius:12px;
+  background:rgba(255,255,255,.04);border:1.5px solid rgba(244,234,214,.16);
+  font-size:15px;color:var(--cream);transition:all .15s;display:flex;gap:12px;align-items:center
+}
+.opt .kbd{width:26px;height:26px;flex:none;border-radius:7px;background:rgba(201,162,75,.16);border:1px solid rgba(201,162,75,.35);display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--gold-bright)}
+.opt:hover:not(:disabled){border-color:var(--gold);background:rgba(201,162,75,.1)}
+.opt.correct{border-color:var(--ok);background:rgba(78,141,91,.22)}
+.opt.wrong{border-color:var(--bad);background:rgba(163,59,59,.2)}
+.opt:disabled{cursor:default}
+.explain{margin-top:16px;background:rgba(201,162,75,.1);border-radius:12px;padding:15px 18px;font-size:14px;line-height:1.6;color:#eaddc6;display:none}
+.explain.show{display:block;animation:fade .3s}
+.explain b{color:var(--gold-bright)}
+.quiz-foot{display:flex;justify-content:space-between;align-items:center;margin-top:22px}
+.quiz-foot .earn{font-size:14px;color:var(--gold-bright);opacity:0;transition:opacity .3s}
+.quiz-foot .earn.show{opacity:1}
+
+/* ===== Result / Certificate ===== */
+.result{text-align:center;padding:40px 26px;background:linear-gradient(160deg,rgba(60,14,28,.6),rgba(30,6,14,.6));border:1px solid rgba(201,162,75,.3);border-radius:20px}
+.result .big{font-size:70px}
+.result h2{font-size:42px;color:var(--gold-bright);margin:6px 0}
+.result p{color:#e3d4bd;font-size:16px;max-width:460px;margin:8px auto 0;line-height:1.6}
+.score-ring{font-size:22px;margin:18px 0}
+
+/* ===== Degustation simulator ===== */
+.deg-stage{background:linear-gradient(160deg,rgba(30,6,14,.6),rgba(60,14,28,.45));border:1px solid rgba(201,162,75,.25);border-radius:20px;padding:30px}
+.deg-steps{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;justify-content:center}
+.deg-steps .ds{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#bfa985;padding:8px 14px;border-radius:30px;border:1px solid rgba(201,162,75,.2)}
+.deg-steps .ds.active{background:rgba(201,162,75,.16);border-color:var(--gold);color:var(--gold-bright);font-weight:600}
+.deg-steps .ds.done{color:var(--ok)}
+.glass-wrap{display:flex;justify-content:center;margin:8px 0 22px}
+.wineglass{width:150px;height:210px;position:relative}
+.bowl{position:absolute;top:0;left:25px;width:100px;height:120px;border:2.5px solid rgba(244,234,214,.35);border-top:none;border-radius:0 0 60px 60px;overflow:hidden;background:rgba(255,255,255,.03)}
+.liquid{position:absolute;bottom:0;left:0;right:0;transition:background .6s, height .6s;height:62%}
+.stem{position:absolute;top:120px;left:73px;width:4px;height:60px;background:rgba(244,234,214,.3)}
+.foot{position:absolute;top:180px;left:45px;width:60px;height:8px;border-radius:50%;background:rgba(244,234,214,.25)}
+.deg-h{font-family:'Cormorant Garamond',serif;font-size:30px;color:var(--gold-bright);text-align:center}
+.deg-sub{text-align:center;color:#d8c6ad;font-size:14.5px;margin:6px auto 20px;max-width:520px;line-height:1.55}
+.pickgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:11px}
+.pick{padding:14px 12px;border-radius:12px;border:1.5px solid rgba(244,234,214,.16);background:rgba(255,255,255,.04);text-align:center;font-size:13.5px;color:var(--cream);transition:all .15s}
+.pick .pe{display:block;font-size:24px;margin-bottom:5px}
+.pick:hover{border-color:var(--gold)}
+.pick.sel{border-color:var(--gold-bright);background:rgba(201,162,75,.2);box-shadow:0 0 0 1px var(--gold) inset}
+.aroma-fams{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.fam{border-radius:14px;padding:16px;border:1.5px solid rgba(244,234,214,.14);background:rgba(255,255,255,.03);cursor:pointer;transition:all .15s}
+.fam:hover{border-color:var(--gold)}
+.fam.open{border-color:var(--gold-bright);background:rgba(201,162,75,.1)}
+.fam .fhead{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--gold-bright);font-weight:600}
+.fam .fhead .fe{font-size:22px}
+.fam .notes{display:none;margin-top:10px;flex-wrap:wrap;gap:6px}
+.fam.open .notes{display:flex}
+.fam .notes span{font-size:11.5px;background:rgba(255,255,255,.06);border:1px solid rgba(244,234,214,.14);padding:4px 9px;border-radius:20px;color:#e3d4bd}
+.slider-row{margin:16px 0}
+.slider-row label{display:flex;justify-content:space-between;font-size:13.5px;color:#e3d4bd;margin-bottom:6px}
+.slider-row label b{color:var(--gold-bright)}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.deg-nav{display:flex;justify-content:space-between;margin-top:26px;gap:12px}
+.note-out{background:rgba(0,0,0,.25);border:1px solid rgba(201,162,75,.25);border-radius:14px;padding:22px;margin-top:10px;font-size:15px;line-height:1.7;color:#eaddc6}
+.note-out b{color:var(--gold-bright)}
+
+/* ===== Badges ===== */
+.badge-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+.bcard{text-align:center;padding:24px 16px;border-radius:16px;border:1px solid rgba(201,162,75,.2);background:rgba(255,255,255,.03);transition:all .2s}
+.bcard.have{border-color:var(--gold);background:linear-gradient(160deg,rgba(201,162,75,.18),rgba(201,162,75,.04));box-shadow:0 10px 30px rgba(201,162,75,.15)}
+.bcard .be{font-size:46px;filter:grayscale(1) opacity(.35);transition:filter .3s}
+.bcard.have .be{filter:none;animation:pop .5s}
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+.bcard h4{font-family:'Cormorant Garamond',serif;font-size:19px;color:var(--cream);margin:10px 0 4px}
+.bcard.have h4{color:var(--gold-bright)}
+.bcard p{font-size:12px;color:#c3ae8c;line-height:1.45}
+
+/* Certificate */
+.cert{position:relative;background:
+  radial-gradient(circle at 50% 0%, #fbf5e6, #f0e5cd);
+  color:#3a2410;border-radius:8px;padding:46px 40px;text-align:center;margin-top:8px;
+  border:2px solid var(--gold);box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.cert:before{content:'';position:absolute;inset:12px;border:1.5px solid rgba(122,30,58,.4);border-radius:4px;pointer-events:none}
+.cert .seal{font-size:52px}
+.cert .ct-k{letter-spacing:5px;text-transform:uppercase;font-size:12px;color:#7b1e3a;margin:6px 0}
+.cert h2{font-family:'Cormorant Garamond',serif;font-size:42px;color:#4a0e1f;margin:2px 0}
+.cert .ct-name{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:40px;color:#7b1e3a;border-bottom:1.5px solid rgba(122,30,58,.35);display:inline-block;padding:6px 30px 2px;margin:14px 0}
+.cert p{color:#5a3a28;font-size:14.5px;line-height:1.6;max-width:460px;margin:6px auto}
+.cert .ct-foot{display:flex;justify-content:space-around;margin-top:30px;font-size:12px;color:#6a4a34}
+.cert .ct-foot b{display:block;font-family:'Cormorant Garamond',serif;font-size:17px;color:#4a0e1f;border-top:1px solid rgba(122,30,58,.3);padding-top:5px;margin-top:24px}
+.name-input{margin:14px auto 0;max-width:340px;display:flex;gap:8px}
+.name-input input{flex:1;padding:13px 16px;border-radius:10px;border:1px solid rgba(201,162,75,.4);background:rgba(255,255,255,.06);color:var(--cream);font-size:15px;font-family:inherit}
+.name-input input::placeholder{color:#b7a486}
+
+/* toast */
+.toast-wrap{position:fixed;right:20px;bottom:20px;z-index:100;display:flex;flex-direction:column;gap:10px}
+.toast{background:linear-gradient(160deg,#2a0611,#4a0e1f);border:1px solid var(--gold);border-radius:14px;padding:14px 18px;display:flex;gap:12px;align-items:center;box-shadow:0 14px 40px rgba(0,0,0,.5);animation:slidein .4s;max-width:320px}
+@keyframes slidein{from{transform:translateX(120%)}to{transform:none}}
+.toast .te{font-size:30px}
+.toast b{color:var(--gold-bright);font-family:'Cormorant Garamond',serif;font-size:18px;display:block}
+.toast small{color:#dcccb2;font-size:12.5px}
+
+/* Mediathek */
+.vgroup{margin-bottom:34px}
+.vgroup h3{font-family:'Cormorant Garamond',serif;font-size:26px;color:var(--gold-bright);margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.vgroup h3:before{content:'';width:26px;height:2px;background:var(--gold)}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.vcard{display:block;border-radius:14px;overflow:hidden;border:1px solid rgba(201,162,75,.2);background:rgba(255,255,255,.03);text-decoration:none;color:inherit;transition:transform .18s,box-shadow .18s,border-color .2s}
+.vcard:hover{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.4);border-color:var(--gold)}
+.vthumb{position:relative;aspect-ratio:16/9;background:#1a040b center/cover no-repeat;display:block}
+.vthumb:after{content:'▶';position:absolute;inset:0;display:grid;place-items:center;font-size:34px;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.7);background:rgba(20,4,11,.25);opacity:.9;transition:opacity .2s}
+.vcard:hover .vthumb:after{opacity:1;background:rgba(20,4,11,.1)}
+.vmeta{padding:13px 15px}
+.vmeta h4{font-family:'Inter';font-size:14px;line-height:1.35;color:var(--cream);margin-bottom:5px}
+.vmeta span{font-size:12px;color:var(--gold)}
+.readlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.readitem{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:12px;border:1px solid rgba(201,162,75,.2);background:rgba(255,255,255,.03);text-decoration:none;color:inherit;transition:all .16s}
+.readitem:hover{border-color:var(--gold);transform:translateY(-2px)}
+.readitem .ri-ico{font-size:22px}
+.readitem h4{font-family:'Inter';font-size:13.5px;color:var(--cream);line-height:1.3;margin-bottom:3px}
+.readitem span{font-size:11.5px;color:var(--gold)}
+.readitem .ri-arr{margin-left:auto;color:var(--gold);font-size:16px}
+/* Media add buttons + user items */
+.media-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.media-note{text-align:center;font-size:12px;color:#a9906e;margin-bottom:28px}
+.btn-sm{padding:11px 20px;font-size:14px}
+.vwrap-user{position:relative}
+.vcard.user,.readitem.user{position:relative;cursor:pointer}
+.vdel{position:absolute;top:8px;right:8px;z-index:3;width:26px;height:26px;border-radius:50%;background:rgba(20,4,11,.8);border:1px solid rgba(201,162,75,.4);color:var(--cream);font-size:13px;line-height:1;display:grid;place-items:center;transition:all .15s}
+.vdel:hover{background:var(--bad);border-color:var(--bad)}
+.utag{display:inline-block;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--bordeaux-deep);background:var(--gold);border-radius:20px;padding:2px 8px;margin-top:6px;font-weight:600}
+/* Modal */
+.modal-ov{position:fixed;inset:0;z-index:200;background:rgba(10,2,6,.7);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.show{display:flex;animation:fade .25s}
+.modal-card{background:linear-gradient(160deg,#2a0611,#4a0e1f);border:1px solid rgba(201,162,75,.4);border-radius:18px;padding:28px 28px 24px;max-width:460px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.6);max-height:90vh;overflow:auto}
+.modal-card h3{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--gold-bright);margin-bottom:4px}
+.modal-card .msub{font-size:13px;color:#cbb794;margin-bottom:18px}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:12.5px;color:#e3d4bd;margin-bottom:6px}
+.fld label b{color:var(--gold)}
+.fld input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(201,162,75,.35);background:rgba(255,255,255,.05);color:var(--cream);font-size:14.5px;font-family:inherit}
+.fld input:focus{outline:none;border-color:var(--gold-bright)}
+.fld input::placeholder{color:#9a8468}
+.merr{color:#f0a3a3;font-size:12.5px;min-height:16px;margin:2px 0 8px}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+.adminlink{font-size:12px;color:#8a7452;cursor:pointer;letter-spacing:.5px}
+.adminlink:hover{color:var(--gold)}
+.backlink{display:inline-flex;align-items:center;gap:7px;color:#cbb794;font-size:13.5px;margin-bottom:20px;cursor:pointer}
+.backlink:hover{color:var(--gold-bright)}
+.footer{text-align:center;padding:34px 20px 46px;color:#9a8468;font-size:12.5px;border-top:1px solid rgba(201,162,75,.12)}
+.footer b{color:var(--gold)}
+.note-tip{background:rgba(201,162,75,.08);border:1px dashed rgba(201,162,75,.35);border-radius:12px;padding:13px 16px;font-size:12.5px;color:#cbb794;margin-top:24px;text-align:center}
+
+@media(max-width:720px){
+  .feature-row{grid-template-columns:repeat(2,1fr)}
+  .hud-right .stat.hide-m{display:none}
+  .brand .name span{display:none}
+  .cert{padding:34px 22px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HUD ===== -->
+<div class="hud">
+  <div class="hud-inner">
+    <div class="brand" onclick="go('home')">
+      <div class="mark">🍇</div>
+      <div class="name"><b>Weinakademie</b><span>Rickenbach</span></div>
+    </div>
+    <div class="hud-right">
+      <div class="stat hide-m"><b id="hudPoints">0</b><span>Weinpunkte</span></div>
+      <div class="level-pill">
+        <span class="lvl-ico" id="hudLvlIco">🍇</span>
+        <div class="lvl-txt"><b id="hudLvlName">Weinneuling</b><span id="hudLvlNext">Level 1 / 5</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="xpbar"><i id="xpFill" style="width:0%"></i></div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+<div class="modal-ov" id="modal" onclick="if(event.target===this)closeModal()"><div class="modal-card" id="modalCard"></div></div>
+
+<!-- ===== HOME ===== -->
+<section id="home" class="screen active">
+  <div class="hero">
+    <div class="hero-orbs">
+      <div class="orb" style="width:120px;height:120px;left:8%;top:20%;background:#7b1e3a"></div>
+      <div class="orb" style="width:80px;height:80px;right:12%;top:12%;background:#c9a24b;animation-delay:1.5s"></div>
+      <div class="orb" style="width:160px;height:160px;right:20%;bottom:-4%;background:#4a0e1f;animation-delay:3s"></div>
+    </div>
+    <div class="kicker">Willkommen im Keller</div>
+    <h1>Werde zum<br><em>Kellermeister</em></h1>
+    <p class="lead">Erkunde den Weinkeller Schritt für Schritt, lerne die Geheimnisse von Rebsorte, Terroir und Degustation – und teste dein Wissen spielerisch. Sammle Weinpunkte, steige durch acht Level auf, bestehe die Meisterklasse und erhalte dein Diplom.</p>
+    <div class="cta-row">
+      <button class="btn btn-gold" onclick="go('cellar')">🔑 Weinkeller betreten</button>
+      <button class="btn btn-ghost" onclick="go('degustation')">🍷 Degustation starten</button>
+      <button class="btn btn-ghost" onclick="go('media')">🎬 Mediathek</button>
+    </div>
+    <div class="wrap">
+      <div class="feature-row">
+        <div class="feature"><div class="fi">🗺️</div><h4>Interaktiver Keller</h4><p>Klicke dich durch die Lernstationen deines Kellers.</p></div>
+        <div class="feature"><div class="fi">🧠</div><h4>Quiz & Level</h4><p>Punkte sammeln, aufsteigen vom Neuling zum Meister.</p></div>
+        <div class="feature"><div class="fi">👃</div><h4>Degustations-Simulator</h4><p>Sehen, Riechen, Schmecken – Schritt für Schritt.</p></div>
+        <div class="feature"><div class="fi">🏅</div><h4>Badges & Diplom</h4><p>Abzeichen sammeln und Zertifikat verdienen.</p></div>
+      </div>
+      <div class="note-tip">💡 Interaktive Lernplattform auf Basis der Zusammenfassung „Wein – Weinbau, Rebsorten und Weinregionen der Welt" (v2.2) von Josip, Mario &amp; Davor, entstanden mit Jean-Philippe Rickenbach. Inhalte &amp; Fragen jederzeit erweiterbar.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CELLAR MAP ===== -->
+<section id="cellar" class="screen">
+  <div class="wrap section-pad">
+    <div class="sec-head">
+      <div class="kicker">Der Weinkeller</div>
+      <h2>Wähle deine Lernstation</h2>
+      <p>Jede Station vermittelt Wissen und schliesst mit einer kleinen Prüfung ab. Schliesse alle acht ab, um die Meisterprüfung freizuschalten.</p>
+    </div>
+    <div class="cellar" id="cellarGrid"></div>
+    <div style="text-align:center;margin-top:34px">
+      <div class="room done" id="finalRoom" style="max-width:520px;margin:0 auto;cursor:pointer" onclick="tryFinal()">
+        <div class="rico">👑</div>
+        <h3>Die Meisterprüfung</h3>
+        <p id="finalHint">Absolviere zuerst alle acht Lernstationen, um die Abschlussprüfung freizuschalten und dein Diplom zu erhalten.</p>
+        <div class="rfoot"><span class="rprog" id="finalProg">0 / 8 Stationen</span><span class="go" id="finalGo">Gesperrt 🔒</span></div>
+      </div>
+    </div>
+    <div class="cta-row" style="margin-top:30px">
+      <button class="btn btn-ghost" onclick="go('profi')">🎓 Meisterklasse (Profi)</button>
+      <button class="btn btn-ghost" onclick="go('degustation')">🍷 Degustations-Simulator</button>
+      <button class="btn btn-ghost" onclick="go('media')">🎬 Mediathek</button>
+      <button class="btn btn-ghost" onclick="go('badges')">🏅 Meine Sammlung</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== MODULE ===== -->
+<section id="module" class="screen">
+  <div class="wrap section-pad">
+    <span class="backlink" onclick="go('cellar')">← Zurück zum Keller</span>
+    <div id="modBody"></div>
+  </div>
+</section>
+
+<!-- ===== QUIZ ===== -->
+<section id="quiz" class="screen">
+  <div class="wrap section-pad" style="max-width:760px">
+    <span class="backlink" id="quizBack">← Zurück</span>
+    <div id="quizBody"></div>
+  </div>
+</section>
+
+<!-- ===== DEGUSTATION ===== -->
+<section id="degustation" class="screen">
+  <div class="wrap section-pad" style="max-width:820px">
+    <span class="backlink" onclick="go('cellar')">← Zurück zum Keller</span>
+    <div class="sec-head">
+      <div class="kicker">Degustations-Simulator</div>
+      <h2>Verkoste Schritt für Schritt</h2>
+    </div>
+    <div class="deg-stage" id="degStage"></div>
+  </div>
+</section>
+
+<!-- ===== MEDIATHEK ===== -->
+<section id="media" class="screen">
+  <div class="wrap section-pad">
+    <span class="backlink" onclick="go('home')">← Startseite</span>
+    <div class="sec-head">
+      <div class="kicker">Video-Bibliothek</div>
+      <h2>Die Mediathek</h2>
+      <p>Alle Filmquellen aus der Wein-Zusammenfassung – von der Reportage über Schweizer Winzer bis zum Fassbinder. Zum Ansehen einfach anklicken (öffnet YouTube).</p>
+    </div>
+    <div class="media-actions">
+      <button class="btn btn-gold btn-sm" onclick="openVideoModal()">➕ Video hinzufügen</button>
+      <button class="btn btn-ghost btn-sm" onclick="openReadModal()">➕ Quelle hinzufügen</button>
+    </div>
+    <div class="media-note">Eigene Einträge werden zentral gespeichert und sind für alle Besucher sichtbar.</div>
+    <div id="mediaBody"></div>
+  </div>
+</section>
+
+<!-- ===== PROFI-MODUS / MEISTERKLASSE ===== -->
+<section id="profi" class="screen">
+  <div class="wrap section-pad">
+    <span class="backlink" onclick="go('cellar')">← Zurück zum Keller</span>
+    <div class="sec-head">
+      <div class="kicker">Die Meisterklasse</div>
+      <h2>Profi-Modus</h2>
+      <p>Drei aufsteigende Stufen für wahre Kenner – jede schaltet die nächste frei. Hier zählt Detailwissen: Zahlen, Namen und die härtesten Fragen. Je Stufe gibt es 40 Punkte pro richtiger Antwort.</p>
+    </div>
+    <div class="cellar" id="profiGrid"></div>
+  </div>
+</section>
+
+<!-- ===== BADGES ===== -->
+<section id="badges" class="screen">
+  <div class="wrap section-pad">
+    <span class="backlink" onclick="go('home')">← Startseite</span>
+    <div class="sec-head">
+      <div class="kicker">Deine Sammlung</div>
+      <h2>Abzeichen & Diplom</h2>
+      <p>Für jede gemeisterte Station gibt es ein Abzeichen. Bestehe die Meisterprüfung für dein persönliches Diplom.</p>
+    </div>
+    <div class="badge-grid" id="badgeGrid"></div>
+    <div id="certArea" style="margin-top:40px"></div>
+  </div>
+</section>
+
+<div class="footer">
+  <b>Weinakademie Rickenbach</b> · Interaktives Lernerlebnis nach der Wein-Zusammenfassung v2.2<br>
+  Inhalte: Josip · Mario · Davor · mit Jean-Philippe Rickenbach<br>
+  Erste Web-Version &amp; Visualisierung: Samuel Hügli &amp; Claude
+</div>
+
+<script>
+/* =====================================================================
+   DATEN – hier später einfach die eigenen Inhalte aus Rickenbach eintragen
+   ===================================================================== */
+const LEVELS=[
+  {n:'Weinneuling',ico:'🍇',min:0},
+  {n:'Weinfreund',ico:'🍷',min:200},
+  {n:'Weinkenner',ico:'🎓',min:500},
+  {n:'Sommelier',ico:'🏅',min:850},
+  {n:'Kellermeister',ico:'👑',min:1200},
+  {n:'Weinexperte',ico:'🎩',min:1600},
+  {n:'Grand Cru',ico:'🏆',min:2000},
+  {n:'Weinlegende',ico:'🌟',min:2400}
+];
+
+const MODULES=[
+  {
+    id:'reben', ico:'🍇', color:'#7b1e3a', badge:'reben',
+    title:'Rebsorten & Grundlagen', sub:'Von der Edlen Weinrebe bis zur Weltsorte aus dem Thurgau.',
+    lessons:[
+      {h:'Was ist eine Rebsorte?', b:'Wein wird aus der Edlen Weinrebe (<em>Vitis vinifera</em>) gewonnen, die in tausenden Sorten vorkommt. Geschmack, Struktur, Haltbarkeit und Entwicklungspotenzial hängen von der Rebsorte ab – aber auch von Boden, Klima, Wetter und der Arbeit des Winzers. Die Wissenschaft der Rebsorten heisst <b>Ampelographie</b>. Seit ca. 5000 v. Chr. wurden 8.000–10.000 Sorten gezüchtet; rund 2.500 sind zugelassen, nur einige hundert wirklich bedeutend.'},
+      {h:'Wie man Rebsorten einteilt', b:'Nach Verwendung unterscheidet man Kelter-, Tafel- und Rosinentrauben. Für Wein zählt vor allem Rot vs. Weiss – wobei Rosé und sogar Weisswein (Blanc de Noirs) aus roten Trauben entstehen können, weil die Farbe meist nur in der Schale sitzt, nicht im Fruchtfleisch. Nach dem Reifezeitpunkt schuf Victor Pulliat eine Klassifizierung mit dem Gutedel als Referenzsorte.',
+        chips:['Keltertrauben','Blanc de Noirs','Reifeperioden nach Pulliat','Rot & Weiss']},
+      {h:'PIWI – die Zukunft?', b:'Traditionelle europäische Reben haben keine natürliche Resistenz gegen Mehltau, der im 19. Jh. aus Nordamerika eingeschleppt wurde. Moderne pilzwiderstandsfähige Sorten (<b>PIWI</b>) ermöglichen bis zu 80 % weniger Fungizideinsatz. 2021 waren in Deutschland aber erst knapp 3 % der Rebflächen mit PIWIs bepflanzt.',
+        chips:['bis 80 % weniger Fungizid','2021: erst ~3 % in D']},
+      {h:'Die meistangebauten Sorten der Welt', b:'Weltweit führen fünf Sorten die Rangliste an (2015/16): Cabernet Sauvignon (340.000 ha), Merlot (266.000 ha), Tempranillo (231.000 ha), Chardonnay (211.000 ha) und Syrah (190.000 ha).',
+        chips:['Cabernet Sauvignon','Merlot','Tempranillo','Chardonnay','Syrah']},
+      {h:'Eine Weltsorte aus dem Thurgau', b:'Hermann Müller (1850 in Tägerwilen TG geboren, später „Müller-Thurgau") suchte eine ertragreiche, säureärmere Weisssorte. 1891 wurde er Direktor der Versuchsstation Wädenswil und pflanzte 1892 seinen berühmten <b>Stock 58</b>. Er hielt die Kreuzung für Riesling × Sylvaner – 1999 zeigte eine Genanalyse: der Vaterstamm war <b>Madeleine Royale</b>. Als Riesling-Sylvaner ist sie mit rund 22.000 ha bis heute die erfolgreichste Weisswein-Neuzüchtung der Welt.',
+        fact:['Stock 58 lebt noch','Der Urstock steht bis heute in Wädenswil und gilt als Kulturgut des Kantons Zürich.']}
+    ],
+    disk:'Warum schmecken zwei Weine aus derselben Rebsorte manchmal ganz unterschiedlich?',
+    quiz:[
+      {q:'Wie heisst die Wissenschaft, die sich mit Rebsorten befasst?',o:['Önologie','Ampelographie','Viktikultur','Sommelerie'],c:1,e:'Ampelographie ist die Lehre der Rebsorten. Rund 8.000–10.000 Sorten wurden über die Jahrtausende gezüchtet.'},
+      {q:'Aus welcher Art wird fast der gesamte Wein der Welt gewonnen?',o:['Vitis riparia','Vitis vinifera','Vitis rupestris','Madeleine Royale'],c:1,e:'Die Edle Weinrebe Vitis vinifera liefert praktisch allen Kelterwein der Welt.'},
+      {q:'Warum kann aus roten Trauben ein Weisswein (Blanc de Noirs) entstehen?',o:['Weil die Trauben unreif geerntet werden','Weil die Farbe meist nur in der Schale sitzt, nicht im Fruchtfleisch','Weil man sie bleicht','Weil es kernlose Trauben sind'],c:1,e:'Der Farbstoff sitzt fast nur in der Schale. Ohne Schalenkontakt bleibt der Saft hell – so entsteht Blanc de Noirs.'},
+      {q:'Wer war laut Genanalyse von 1999 der wahre „Vater" des Riesling-Sylvaner?',o:['Sylvaner','Chasselas','Madeleine Royale','Chardonnay'],c:2,e:'Nicht Sylvaner, sondern Madeleine Royale war der Vaterstamm – der Name Riesling-Sylvaner blieb dennoch erhalten.'},
+      {q:'Welchen Vorteil bringen PIWI-Sorten?',o:['Höheren Alkoholgehalt','Bis zu 80 % weniger Fungizideinsatz','Kernlose Trauben','Schnellere Gärung'],c:1,e:'Pilzwiderstandsfähige Sorten (PIWI) brauchen deutlich weniger Spritzmittel – bis zu 80 % weniger Fungizid.'}
+    ]
+  },
+  {
+    id:'reblaus', ico:'🐛', color:'#5a4a1a', badge:'reblaus',
+    title:'Die Reblauskatastrophe', sub:'Wie eine winzige Laus den Weinbau der Welt für immer veränderte.',
+    lessons:[
+      {h:'Ein winziger Schädling', b:'Die Reblaus (<em>Daktulosphaira vitifoliae</em>) ist eine nur 0,7–1,4 mm kleine Pflanzenlaus aus Nordamerika. Sie befällt die <b>Wurzeln</b> der Weinreben, schädigt deren Leitgewebe und führt zu Wasser- und Nährstoffmangel – die Rebe stirbt ab. Dazu drohen Sekundärinfektionen durch Bakterien, Pilze und Viren.'},
+      {h:'Die Katastrophe', b:'In den 1860er-Jahren wurden infizierte Rebstöcke von der amerikanischen Ostküste über London nach Südfrankreich eingeschleppt – ab 1863 nachgewiesen. Von dort breitete sich die Reblaus rasant über Europa aus. Frankreich traf es am härtesten: Zwischen 1865 und 1885 wurden rund <b>2,5 Millionen Hektar</b> Rebfläche vernichtet.',
+        chips:['ab 1863 in Frankreich','2,5 Mio ha zerstört','1867 Klosterneuburg','1874 bei Bonn']},
+      {h:'Die rettende Idee', b:'Den Durchbruch gelang Jules Émile Planchon in Montpellier: Man <b>pfropft</b> europäische Edelreiser (Vitis vinifera) auf reblausresistente amerikanische Unterlagsreben. Wildreben wie Vitis riparia, berlandieri und rupestris bilden an der Anstichstelle Korkgewebe und wehren die Laus ab. Heute stehen fast alle Weinberge der Welt auf solchen Unterlagsreben.',
+        chips:['Veredelung / Pfropfen','amerikanische Unterlagsreben','Korkgewebe an der Wurzel']},
+      {h:'Die letzten wurzelechten Reben', fact:['Chile & Zypern sind reblausfrei','Auf Sandböden kann sich die Reblaus nicht fortbewegen. Chile und Zypern blieben ganz verschont – dort gibt es bis heute wurzelechte, ungepfropfte Reben.']}
+    ],
+    disk:'Warum stehen heute fast alle Reben der Welt auf amerikanischen Wurzeln?',
+    quiz:[
+      {q:'Woher stammt die Reblaus ursprünglich?',o:['Nordamerika','Südfrankreich','Kaukasus','Australien'],c:0,e:'Die Reblaus kam aus Nordamerika und wurde über London nach Südfrankreich eingeschleppt.'},
+      {q:'Welchen Teil der Rebe greift die Reblaus an?',o:['Die Blätter','Die Trauben','Die Wurzeln','Die Blüten'],c:2,e:'Sie befällt die Wurzeln, schädigt das Leitgewebe – die Rebe verhungert und vertrocknet.'},
+      {q:'Wie wurde die Reblaus letztlich besiegt?',o:['Durch Fungizide','Durch Pfropfen auf amerikanische Unterlagsreben','Durch Rodung aller Reben','Durch kältere Winter'],c:1,e:'Die Veredelung europäischer Reben auf resistente amerikanische Unterlagen war die dauerhafte Lösung.'},
+      {q:'Welches Land ist bis heute reblausfrei und hat wurzelechte Reben?',o:['Frankreich','Italien','Chile','Deutschland'],c:2,e:'Chile (und Zypern) blieben verschont – dort wachsen noch ungepfropfte, wurzelechte Reben.'}
+    ]
+  },
+  {
+    id:'sinne', ico:'👃', color:'#8a5a1a', badge:'sinne',
+    title:'Geruch, Geschmack & Verkosten', sub:'Warum „Geschmack" zum grössten Teil Geruch ist.',
+    lessons:[
+      {h:'Zwei Sinne, ein Erlebnis', b:'Der Geschmack über die Zunge kennt nur <b>fünf</b> Grundqualitäten: süss, sauer, salzig, bitter und umami. Der Geruchssinn ist weit komplexer: In der Riechschleimhaut sitzen 20–30 Millionen Riechzellen mit rund 400 Rezeptortypen – so lassen sich etwa 10.000 Gerüche unterscheiden.',
+        chips:['süss','sauer','salzig','bitter','umami']},
+      {h:'Retronasal – der Schlüssel', b:'Beim Trinken gelangen Aromen nicht nur direkt durch die Nase (orthonasal), sondern auch <b>retronasal</b> – vom Mund rückwärts zur Riechschleimhaut. Was wir als „Geschmack" erleben, ist zum grossen Teil Geruch. Bei Schnupfen schmeckt Wein deshalb nach fast nichts. Ungeübte erkennen ~50 % der Gerüche, trainierte Verkoster bis zu 98 %.'},
+      {h:'Verkosten in fünf Schritten', b:'Gute Verkostung folgt immer derselben Reihenfolge – vom Auge über die Nase zum Gaumen: 1. Farbe & Klarheit ansehen, 2. das Glas schwenken, 3. riechen, 4. schmecken (Süsse, Säure, Tannin, Körper), 5. den Abgang bewerten. Wichtig: sich Zeit nehmen und Eindrücke bewusst benennen.',
+        chips:['① Auge','② Schwenken','③ Nase','④ Gaumen','⑤ Abgang']},
+      {h:'Weinfehler erkennen', b:'Nicht jeder ungewohnte Geruch ist ein Fehler. Der häufigste ist der <b>Korkschmecker (TCA)</b> – er macht den Wein muffig und flach. Ein leichter <b>Böckser</b> lässt sich oft durch Belüften im Glas oder in der Karaffe beheben, während Kork und Essigstich bleiben.',
+        fact:['Warum „Cassis" oder „Tabak"?','Weil es keine abstrakten Grundbegriffe für Gerüche gibt, borgt sich die Weinsprache konkrete Materialien und Früchte. Der Geruchssinn ist zudem direkt mit Emotion und Gedächtnis verbunden – darum weckt ein Wein Erinnerungen.']}
+    ],
+    disk:'Warum riecht Wein nach Kirschen, Vanille oder Tabak, obwohl diese Zutaten gar nicht enthalten sind?',
+    quiz:[
+      {q:'Wie viele Grundqualitäten nimmt die Zunge wahr?',o:['Drei','Fünf','Zehn','Vierhundert'],c:1,e:'Fünf: süss, sauer, salzig, bitter und umami. Alles Weitere ist Geruch.'},
+      {q:'Was bedeutet „retronasal"?',o:['Durch die Nase eingeatmet','Vom Mund rückwärts zur Riechschleimhaut','Über die Zunge','Über die Augen'],c:1,e:'Retronasal gelangen die Aromen vom Mund aus nach hinten zur Nase – der grösste Teil des „Geschmacks".'},
+      {q:'Warum schmeckt Wein bei Schnupfen nach fast nichts?',o:['Weil die Zunge betäubt ist','Weil „Geschmack" grösstenteils Geruch ist','Weil der Wein kälter wirkt','Weil man weniger trinkt'],c:1,e:'Ohne funktionierenden Geruchssinn fällt der grösste Teil des Weinerlebnisses weg.'},
+      {q:'Wie heisst der häufigste Weinfehler (muffig, flach)?',o:['Böckser','Essigstich','Korkschmecker (TCA)','Oxidation'],c:2,e:'Der Korkschmecker (TCA) ist der häufigste Fehler – er lässt sich nicht wegbelüften.'},
+      {q:'Welcher Weinfehler lässt sich durch Belüften oft beheben?',o:['Korkschmecker','Böckser','Essigstich','Alle drei'],c:1,e:'Ein leichter Böckser verfliegt oft in der Karaffe; Kork und Essigstich bleiben.'}
+    ]
+  },
+  {
+    id:'fluss', ico:'🌊', color:'#245a66', badge:'fluss',
+    title:'Weinregionen & ihre Flüsse', sub:'Die Wasserwege als Lebensadern des Weins.',
+    lessons:[
+      {h:'Warum an Flüssen?', b:'Legt man eine Weinkarte über eine Flusskarte, zeigt sich ein Muster: Fast alle grossen Weinregionen liegen an Flüssen. Drei Gründe: das <b>Klima</b> (Täler speichern Wärme, mildern Fröste), der <b>Boden</b> (Kies und Schwemmland – karg, gut durchlüftet) und historisch am wichtigsten der <b>Transport</b> – vor Eisenbahn und Lastwagen war der Fluss die einzige Möglichkeit, schwere Weinfässer zu bewegen.',
+        chips:['Klima','Boden','Transport (historisch am wichtigsten)']},
+      {h:'Europas Weinströme', b:'In Frankreich sammelt die <b>Gironde</b> mit Garonne und Dordogne die Weine von Bordeaux und leitet sie zum Atlantik – jahrhundertelang nach England. Die <b>Loire</b>, „Fluss der Könige", brachte den Wein bis nach Paris. Die <b>Rhône</b> trug ihn ans Mittelmeer, <b>Rhein</b> und <b>Mosel</b> die Rieslinge nach Norden, der <b>Douro</b> den Portwein nach Porto, die <b>Donau</b> prägt die Wachau.',
+        chips:['Gironde → Bordeaux','Loire','Rhône','Rhein & Mosel','Douro','Donau']},
+      {h:'Übersee', b:'In Kalifornien entwässern Napa und Sonoma über Napa River und Russian River in die San Francisco Bay – das Tor zur Welt. In Südafrika prägen Berg River und Breede River den Kap-Weinbau. In Chile stürzen Maipo, Rapel und Maule aus den Anden zum Pazifik. In Argentinien speist Anden-Schmelzwasser die Bewässerung der trockenen Hochwüste um Mendoza, und Uruguay öffnet sich zum Río de la Plata.',
+        chips:['San Francisco Bay','Berg & Breede River','Maipo/Rapel/Maule','Mendoza: Schmelzwasser']},
+      {h:'Merksatz', fact:['Wer die Flüsse liest, versteht die Reben','Fast überall floss der Wein buchstäblich mit dem Strom zu Städten, Höfen und Häfen – die Flüsse erklären, warum die Reben dort stehen, wo sie stehen.']}
+    ],
+    disk:'Welche Rolle spielten Flüsse für Klima, Boden und Handel des Weins?',
+    quiz:[
+      {q:'Welcher der drei Gründe war historisch am wichtigsten für Weinregionen an Flüssen?',o:['Das Klima','Der Boden','Der Transport','Die Aussicht'],c:2,e:'Vor Eisenbahn und Lastwagen war der Fluss der einzige Weg, schwere Fässer zu transportieren.'},
+      {q:'Welcher Fluss sammelt die Weine von Bordeaux und führt sie zum Atlantik?',o:['Die Loire','Die Rhône','Die Gironde','Die Donau'],c:2,e:'Die Gironde mit ihren Zuflüssen Garonne und Dordogne – der Wein ging von dort nach England und Nordeuropa.'},
+      {q:'Wie erreicht der Wein in Argentinien die trockenen Anbaugebiete um Mendoza?',o:['Durch Regenwasser','Durch Anden-Schmelzwasser und Bewässerungskanäle','Durch Meerwasser','Durch Grundwasserpumpen'],c:1,e:'Ohne das Schmelzwasser der Anden-Flüsse gäbe es in der Hochwüste um Mendoza keinen Wein.'},
+      {q:'Über welche Bucht erreichte kalifornischer Wein die Welt?',o:['Monterey Bay','San Francisco Bay','Chesapeake Bay','Hudson Bay'],c:1,e:'Napa und Sonoma entwässern über Napa River und Russian River in die San Francisco Bay.'}
+    ]
+  },
+  {
+    id:'keller', ico:'🛢️', color:'#5a3320', badge:'keller',
+    title:'Handwerk & Weinbereitung', sub:'Vom Fassbinder bis zum Barrique – wie Wein entsteht.',
+    lessons:[
+      {h:'Das Fassbinderhandwerk', b:'Die Kelten erfanden das Holzfass kurz vor Christi Geburt – es wurde zum universalen Behältnis für Wein, Bier, Butter und Fisch. Fassbinder Johann Costner (85) aus Südtirol übt das Handwerk seit seinem 14. Lebensjahr aus. Hauptholz ist die Edelkastanie; die Dauben werden mit Feuer weich gemacht und gebogen. Nach 1900 verdrängten Zinkblech, Kunststoff und Edelstahl das Handwerk – doch ein wirklich guter Rotwein braucht die Reifung im Holz.',
+        chips:['Edelkastanie','Dauben','Kelten erfanden das Fass']},
+      {h:'Vom Entrappen zur Maische', b:'Beim <b>Entrappen</b> werden die Stiele entfernt (sie enthalten Bitterstoffe). In der <b>Maische</b> zeigt sich der grösste Unterschied: Bei Weisswein wird nur der Saft vergoren, bei Rotwein vergärt zunächst die ganze Maische – so gehen Farbe und Gerbstoffe aus der Schale in den Wein über. Der Schalenkontakt entscheidet über Rot, Weiss, Orange und Rosé.',
+        chips:['Entrappen','Weiss: nur Saft','Rot: ganze Maische','Schalenkontakt = Farbe']},
+      {h:'Pressen, Gären, Reifen', b:'Es folgen schonendes <b>Pressen</b> (Membranpresse ab 0,3 bar), die <b>Filtration</b> der Trubstoffe und die <b>Gärung</b>: Hefe wandelt Zucker in Alkohol und CO₂ um (lange Gärung = trocken, kurze = süsslich). Die Reifung erfolgt im <b>Barrique</b>, einem Eichenfass mit 225–500 Litern.',
+        chips:['Membranpresse','Gärung: Zucker → Alkohol','Barrique 225–500 l']},
+      {h:'Oechsle & Terroir', b:'Der Zuckergehalt im Most bestimmt auf der <b>Oechsle-Skala</b> die Qualitätsstufe: ab 44 Oechsle Tafelwein, ab 110 Oechsle Beerenauslese. Und über allem steht das <b>Terroir</b> – die Gesamtheit aller Faktoren (Boden, Klima, Lage, Mensch), die einen Wein prägen. Am vulkanischen Kaiserstuhl etwa keltert Fritz Keller international anerkannte Rotweine.',
+        fact:['Warum Holz statt Stahl?','Im Holzfass reift der Wein langsam unter kontrolliertem Luftzutritt und nimmt Aromen und Gerbstoffe auf – ein Stahltank kann das nicht.']}
+    ],
+    disk:'Warum reift guter Rotwein im Holzfass und nicht einfach im Stahltank?',
+    quiz:[
+      {q:'Was geschieht beim „Entrappen"?',o:['Die Trauben werden gepresst','Die Stiele werden entfernt (Bitterstoffe)','Der Wein wird gefiltert','Die Hefe wird zugegeben'],c:1,e:'Entrappen entfernt die Stiele, die sonst Bitterstoffe in den Wein bringen würden.'},
+      {q:'Worin unterscheidet sich die Maische bei Rot- und Weisswein?',o:['Bei Weisswein vergärt die ganze Maische','Bei Rotwein vergärt die ganze Maische (Schalenkontakt)','Es gibt keinen Unterschied','Rotwein wird nicht vergoren'],c:1,e:'Beim Rotwein vergärt die ganze Maische – so gelangen Farbe und Gerbstoffe aus der Schale in den Wein.'},
+      {q:'Was misst die Oechsle-Skala?',o:['Den Alkoholgehalt','Den Zuckergehalt des Mostes','Die Säure','Die Temperatur'],c:1,e:'Oechsle misst den Zuckergehalt im Most – ab 44 Tafelwein, ab 110 Beerenauslese.'},
+      {q:'Wie gross ist ein Barrique?',o:['50–100 Liter','225–500 Liter','1.000 Liter','5 Liter'],c:1,e:'Ein Barrique ist ein Eichenfass mit 225–500 Litern Inhalt.'},
+      {q:'Was umfasst der Begriff „Terroir"?',o:['Nur den Boden','Boden, Klima, Lage und den Menschen','Nur die Rebsorte','Nur den Jahrgang'],c:1,e:'Terroir ist die Gesamtheit aller prägenden Faktoren – der „Fingerabdruck" eines Weinbergs.'}
+    ]
+  },
+  {
+    id:'schweiz', ico:'🇨🇭', color:'#a01c2e', badge:'schweiz',
+    title:'Schweizer Wein', sub:'Steilhänge, uralte Sorten und ein Wein, den die Welt kaum kennt.',
+    lessons:[
+      {h:'Vom Vorurteil zur Qualität', b:'Das alte Vorurteil „Schweizer Wein schmeckt wie Essig" stammt aus einer Zeit maximaler Erntemengen: viele Trauben pro Rebstock → wenig Zucker → saurer Wein, gefördert durch Subventionen. Heute ist der Rebbau auf <b>Qualität und kleinere Erträge</b> ausgerichtet. Neu ist der Klimawandel ein Problem: höhere Temperaturen senken die Säure, kühlere Lagen liefern heute oft die besseren Resultate.'},
+      {h:'Kennzahlen', b:'<b>99 %</b> der Schweizer Weinproduktion werden im Inland konsumiert – deshalb ist Schweizer Wein im Ausland kaum bekannt, obwohl die Schweiz den viertgrössten Pro-Kopf-Konsum der Welt hat. Über 60 % des Landes sind von Alpen bedeckt: Weinbau findet oft an extrem steilen Hängen und fast nur in Handarbeit statt, extrem kleinparzelliert.',
+        chips:['99 % Inlandkonsum','4.-grösster Pro-Kopf-Konsum','Chasselas & Pinot Noir','Handarbeit am Steilhang']},
+      {h:'Die vier grossen Regionen', b:'<b>Drei-Seen-Land</b> (Bielersee, Twann seit 1609): Chasselas als leichter Apérowein zu Raclette und Fisch. <b>Genfersee/Lavaux</b> (UNESCO-Welterbe 2007, Terrassen der Zisterzienser ab 1141, Prinzip der „vier Sonnen"). <b>Wallis</b>: ein Drittel der Schweizer Rebfläche, 2.500 Sonnenstunden, Weinbau bis über 1.000 m – Heimat autochthoner Sorten wie Humagne Rouge, Heida, Cornalin (seit 1313) und der ultraseltenen Rèze. <b>Graubünden/Bündner Herrschaft</b>: Pinot Noir, das „Burgund der Schweiz", mit der Rarität Completer.',
+        chips:['Drei-Seen-Land','Lavaux (UNESCO)','Wallis','Bündner Herrschaft']},
+      {h:'Das Tessin – die Merlot-Region', b:'Nach der Reblauskatastrophe wurde im Tessin zu Beginn des 20. Jh. <b>Merlot</b> gepflanzt – heute die klare Leitsorte der „Sonnenstube der Schweiz". Daraus entstehen kraftvolle Rotweine, aber auch elegante weiss gekelterte Varianten (Merlot bianco). Bei Blinddegustationen schlagen Tessiner Spitzenweine regelmässig deutlich teurere Bordeaux.',
+        fact:['Wein wird erlebbar','Moderne Erlebniszentren wie das „Weinerlebnis Salgesch" (Schweizer Weintourismus-Preis 2019) verbinden Degustation, Rebwanderwege und E-Bike-Touren.']}
+    ],
+    disk:'Warum kennt man Schweizer Wein im Ausland kaum, obwohl in der Schweiz viel getrunken wird?',
+    quiz:[
+      {q:'Wie viel Prozent des Schweizer Weins werden im Inland konsumiert?',o:['50 %','75 %','99 %','30 %'],c:2,e:'99 % bleiben im Land – deshalb ist Schweizer Wein im Ausland kaum bekannt.'},
+      {q:'Welche zwei Sorten sind die wichtigsten der Schweiz?',o:['Merlot & Syrah','Chasselas & Pinot Noir','Riesling & Chardonnay','Cornalin & Heida'],c:1,e:'Chasselas (weiss) und Pinot Noir (rot) sind die beiden Leitsorten der Schweiz.'},
+      {q:'Warum heisst die Bündner Herrschaft „Burgund der Schweiz"?',o:['Wegen des Kalkbodens','Wegen des Pinot Noir, angeblich von Söldnern aus Frankreich gebracht','Wegen der Lage am See','Wegen der Mönche'],c:1,e:'Der Pinot Noir prägt die Region seit dem 17. Jh. – angeblich von Bündner Söldnern aus dem Burgund gebracht.'},
+      {q:'Welche Sorte ist die Leitsorte des Tessins?',o:['Chasselas','Completer','Merlot','Humagne'],c:2,e:'Der Merlot – nach der Reblaus gepflanzt – ist die Leitsorte der Tessiner „Sonnenstube".'},
+      {q:'Welche Schweizer Region hat rund ein Drittel der gesamten Rebfläche?',o:['Tessin','Wallis','Genf','Graubünden'],c:1,e:'Das Wallis stellt ein Drittel der Schweizer Rebfläche und ist das Epizentrum autochthoner Sorten.'}
+    ]
+  },
+  {
+    id:'europa', ico:'🍷', color:'#3a5a3a', badge:'europa',
+    title:'Deutschland, Frankreich & Co.', sub:'Steilhang-Riesling, die Klassifikation von 1855 und der „Parker-Effekt".',
+    lessons:[
+      {h:'Deutschland – Steilhang & Rebsorten', b:'Der <b>Bremmer Calmont</b> an der Mosel ist mit fast 70 % Hangneigung der steilste Weinberg Europas – reine Handarbeit, ideal für Riesling auf wärmespeicherndem Schiefer. Deutschland baut 80 % Weiss und nur 20 % Rot an. Die wichtigsten Sorten nach Fläche: Riesling (22 %), Spätburgunder (11,5 %), Grauburgunder (4,4 %), Weissburgunder (4,3 %).',
+        chips:['Bremmer Calmont ~70 %','Riesling 22 %','Spätburgunder 11,5 %','80 % Weisswein']},
+      {h:'Riesling an der Mosel', b:'In Trier findet die berühmteste Weinauktion der Welt statt (VDP „Grosser Ring") – versteigert wird ausschliesslich Mosel-Riesling, bis 1,5 Mio. € an einem Nachmittag. Die Mosel ist 546 km lang und umfasst 8.800 ha; der <b>Bernkasteler Doctor</b> ist mit 4–8 Mio. €/ha der teuerste Weinberg Deutschlands. Riesling gilt als beste Weissrebsorte – altersfähig bis 100 Jahre, mit niedrigem Alkohol.'},
+      {h:'Sekt & Champagner', b:'Rotkäppchen aus Freyburg ist mit 55 % Marktanteil deutscher Marktführer. Bei der edlen <b>Flaschengärung</b> (Champagner-Methode) reift der Sekt mindestens 9 Monate auf der Flasche. Champagner besteht aus drei Hauptsorten: Pinot Noir, Pinot Meunier und Chardonnay.',
+        chips:['Flaschengärung ≥ 9 Monate','Pinot Noir','Pinot Meunier','Chardonnay']},
+      {h:'Frankreich & die Klassifikation von 1855', b:'Für die Weltausstellung liess Napoleon III. die Weine des Médoc in eine Rangliste bringen: 61 Güter, fünf Stufen. An der Spitze vier <b>Premiers Crus</b>: Lafite-Rothschild, Latour, Margaux und Haut-Brion. 1973 kam <b>Mouton-Rothschild</b> als fünftes hinzu – die bis heute einzige Änderung. Der Weinkritiker Robert Parker prägte später mit seinem 100-Punkte-System die „Parkerisierung": opulente, alkoholreiche, stark im Eichenholz ausgebaute Weine.',
+        fact:['Herkunft zählt','Seit über 165 Jahren ist die 1855er-Ordnung fast unverändert – ein Zeichen, wie sehr im Bordeaux Herkunft und Ruf wiegen.']}
+    ],
+    disk:'Warum sind manche Weine so teuer – Qualität, Seltenheit, Handarbeit oder Name?',
+    quiz:[
+      {q:'Welcher ist der steilste Weinberg Europas?',o:['Bernkasteler Doctor','Bremmer Calmont','Kaiserstuhl','Lavaux'],c:1,e:'Der Bremmer Calmont an der Mosel hat fast 70 % Hangneigung – Riesling in reiner Handarbeit.'},
+      {q:'Welche Rebsorte hat in Deutschland den grössten Flächenanteil?',o:['Spätburgunder','Riesling','Grauburgunder','Chardonnay'],c:1,e:'Riesling führt mit 22 % – fruchtig, säurereich, in allen Qualitätsstufen.'},
+      {q:'Aus welchen drei Hauptsorten besteht Champagner?',o:['Chardonnay, Riesling, Merlot','Pinot Noir, Pinot Meunier, Chardonnay','Pinot Noir, Syrah, Gamay','Chasselas, Chardonnay, Pinot Noir'],c:1,e:'Pinot Noir, Pinot Meunier (Schwarzriesling) und Chardonnay bilden die klassische Champagner-Cuvée.'},
+      {q:'Wie viele Güter standen 1855 ursprünglich als Premiers Crus an der Spitze?',o:['Ein Gut','Vier Güter','Zehn Güter','61 Güter'],c:1,e:'Vier: Lafite-Rothschild, Latour, Margaux und Haut-Brion.'},
+      {q:'Welches Gut kam 1973 als bislang einzige Änderung dazu?',o:['Château d’Yquem','Château Mouton-Rothschild','Château Petrus','Château Cheval Blanc'],c:1,e:'Mouton-Rothschild wurde 1973 zum fünften Premier Cru erhoben – die einzige Änderung seither.'}
+    ]
+  },
+  {
+    id:'neuewelt', ico:'🌎', color:'#6a2a4a', badge:'neuewelt',
+    title:'Die Neue Welt & das Etikett', sub:'Von Chiles Carménère über Tannat bis zum Pinotage – und wie man Etiketten liest.',
+    lessons:[
+      {h:'Chile – Carménère', b:'Carménère stammt aus dem Südwesten Frankreichs (natürliche Kreuzung aus Cabernet Franc und Gros Cabernet) und kam im 19. Jh. nach Chile, wo sie lange mit <b>Merlot verwechselt</b> wurde. Erst 1994 wurde sie als eigenständige Sorte anerkannt – heute Chiles nationale Leitrebe: spät reifend, vollmundig, mit hohen Tanninen und dunklen Beeren. Chile setzt stark auf Energieeffizienz (40 % des Stroms aus Wasserkraft).',
+        chips:['Cabernet Franc × Gros Cabernet','1994 anerkannt','spät reifend','Chiles Leitrebe']},
+      {h:'Argentinien & Uruguay', b:'Rund um <b>Mendoza</b> liegen Argentiniens renommierteste Weingüter, gespeist vom Anden-Schmelzwasser. Uruguay ist berühmt für <b>Tannat</b>: Das Weingut Garzón war das erste ausserhalb Nordamerikas mit LEED-Zertifizierung. Tannat enthält 3–4 Mal mehr Tannin als Cabernet Sauvignon – dank sorgfältigem Tanninmanagement wirkt der Wein dennoch weich und passt perfekt zu gegrilltem Fleisch (Asado).',
+        chips:['Mendoza','Tannat','3–4× mehr Tannin','Garzón: erstes LEED-Weingut']},
+      {h:'Südafrika – Pinotage & Chenin Blanc', b:'Schon 1659 wurde am Kap Wein gekeltert; der Constantia-Süsswein tröstete angeblich Napoleon im Exil. Der kühlende „Cape Doctor"-Wind prägt das Western Cape. Die Vorzeigerebe <b>Pinotage</b> wurde 1925 in Stellenbosch als Kreuzung aus <b>Pinot Noir × Cinsaut</b> gezüchtet – die meistangebaute Sorte ist aber die weisse <b>Chenin Blanc</b> („Steen"). Nach dem Ende des Boykotts 1994 folgte eine rasante Qualitätsrevolution.',
+        chips:['Pinotage = Pinot Noir × Cinsaut','Chenin Blanc / „Steen"','Cape Doctor','Qualitätsrevolution nach 1994']},
+      {h:'Das Etikett & die Qualitätspyramide', b:'Das Etikett verrät die Qualitätsstufe – und damit, wie streng Herkunft, Ertrag und Reife geregelt sind. Die Systeme heissen je nach Land anders (<b>AOC/AOP</b> in Frankreich & der Schweiz, <b>DOC/DOCG</b> in Italien, <b>QbA/Prädikat</b> in Deutschland, <b>DAC</b> in Österreich), folgen aber demselben Prinzip.',
+        fact:['Die goldene Regel','Je enger die Herkunft definiert ist, desto höher die Qualitätsstufe – von einfachem Tafelwein bis zum Lagen- und Prädikatswein.']}
+    ],
+    disk:'Was macht Pinotage zur typisch südafrikanischen Rebsorte?',
+    quiz:[
+      {q:'Welche Rebsorte wurde in Chile lange mit Merlot verwechselt?',o:['Malbec','Carménère','Tannat','Pinotage'],c:1,e:'Carménère wurde erst 1994 als eigenständige Sorte erkannt – heute Chiles Leitrebe.'},
+      {q:'Wie viel mehr Tannin enthält Tannat im Vergleich zu Cabernet Sauvignon?',o:['Gleich viel','1,5 Mal','3–4 Mal mehr','10 Mal mehr'],c:2,e:'Tannat hat 3–4× mehr Tannin – die Polyphenole gelten sogar als gesundheitlich wertvoll.'},
+      {q:'Aus welchen zwei Sorten wurde Pinotage gezüchtet?',o:['Pinot Noir × Cinsaut','Cabernet × Merlot','Syrah × Grenache','Pinot Noir × Chardonnay'],c:0,e:'Pinotage wurde 1925 in Stellenbosch als Kreuzung aus Pinot Noir und Cinsaut gezüchtet.'},
+      {q:'Welche weisse Sorte ist in Südafrika die meistangebaute (lokal „Steen")?',o:['Chardonnay','Sauvignon Blanc','Chenin Blanc','Colombard'],c:2,e:'Chenin Blanc, lokal „Steen", ist Südafrikas meistangebaute Rebsorte.'},
+      {q:'Was gilt für die Qualitätsstufen (AOC, DOC, Prädikat …)?',o:['Je höher der Alkohol, desto höher die Stufe','Je enger die Herkunft, desto höher die Stufe','Je älter der Wein, desto höher die Stufe','Der Preis bestimmt die Stufe'],c:1,e:'Alle Systeme folgen demselben Prinzip: je enger die Herkunft definiert, desto höher die Stufe.'}
+    ]
+  }
+];
+
+const FINAL_EXAM=[
+  {q:'Wie heisst die Wissenschaft der Rebsorten?',o:['Önologie','Ampelographie','Ökologie','Sensorik'],c:1,e:'Ampelographie – die Lehre der Rebsorten.'},
+  {q:'Wie wurde die Reblauskatastrophe letztlich besiegt?',o:['Mit Fungiziden','Durch Pfropfen auf amerikanische Unterlagsreben','Durch Rodung','Durch kältere Winter'],c:1,e:'Veredelung auf resistente amerikanische Unterlagen.'},
+  {q:'Der „Geschmack" eines Weines ist zum grössten Teil …',o:['Süsse','Geruch (retronasal)','Säure','Temperatur'],c:1,e:'Was wir schmecken, ist grösstenteils retronasal wahrgenommener Geruch.'},
+  {q:'Welcher Grund für Weinregionen an Flüssen war historisch am wichtigsten?',o:['Das Klima','Der Boden','Der Transport','Die Aussicht'],c:2,e:'Der Fluss war lange der einzige Weg für schwere Fässer.'},
+  {q:'Welche zwei Sorten sind die wichtigsten der Schweiz?',o:['Merlot & Syrah','Chasselas & Pinot Noir','Riesling & Chardonnay','Completer & Heida'],c:1,e:'Chasselas (weiss) und Pinot Noir (rot).'},
+  {q:'Wie gross ist ein Barrique?',o:['225–500 Liter','50 Liter','1.000 Liter','5 Liter'],c:0,e:'Ein Eichenfass mit 225–500 Litern.'},
+  {q:'Welches Gut kam 1973 als einzige Änderung der 1855er-Klassifikation dazu?',o:['Château d’Yquem','Château Mouton-Rothschild','Château Latour','Château Petrus'],c:1,e:'Mouton-Rothschild wurde 1973 zum fünften Premier Cru.'},
+  {q:'Aus welchen Sorten wurde Pinotage gezüchtet?',o:['Pinot Noir × Cinsaut','Cabernet × Merlot','Syrah × Grenache','Tannat × Malbec'],c:0,e:'1925 in Stellenbosch aus Pinot Noir und Cinsaut.'}
+];
+
+const BADGES=[
+  {id:'reben',e:'🍇',n:'Rebsorten-Kenner',d:'Modul Rebsorten & Grundlagen gemeistert'},
+  {id:'reblaus',e:'🐛',n:'Reblaus-Bezwinger',d:'Modul Reblauskatastrophe gemeistert'},
+  {id:'sinne',e:'👅',n:'Sensorik-Talent',d:'Modul Geruch & Geschmack gemeistert'},
+  {id:'fluss',e:'🌊',n:'Fluss-Navigator',d:'Modul Weinregionen & Flüsse gemeistert'},
+  {id:'keller',e:'🛢️',n:'Fass-Kenner',d:'Modul Handwerk & Weinbereitung gemeistert'},
+  {id:'schweiz',e:'🇨🇭',n:'Schweiz-Experte',d:'Modul Schweizer Wein gemeistert'},
+  {id:'europa',e:'🍷',n:'Europa-Kenner',d:'Modul Deutschland & Frankreich gemeistert'},
+  {id:'neuewelt',e:'🌎',n:'Weltenbummler',d:'Modul Neue Welt gemeistert'},
+  {id:'nose',e:'🌹',n:'Feine Nase',d:'Degustations-Simulator durchlaufen'},
+  {id:'diploma',e:'👑',n:'Diplom-Kellermeister',d:'Meisterprüfung bestanden'},
+  {id:'profi1',e:'🥉',n:'Profi Bronze',d:'Profi-Stufe „Zahlen & Fakten" bestanden'},
+  {id:'profi2',e:'🥈',n:'Profi Silber',d:'Profi-Stufe „Namen & Persönlichkeiten" bestanden'},
+  {id:'profi3',e:'🥇',n:'Meisterklasse Gold',d:'Alle Profi-Stufen gemeistert'}
+];
+
+/* Profi-Modus – die Meisterklasse (3 aufsteigende Stufen mit Expertenfragen) */
+const PRO_STAGES=[
+  {
+    id:'bronze', medal:'🥉', name:'Profi Bronze', sub:'Zahlen & Fakten – für ein gutes Gedächtnis.', badge:'profi1',
+    questions:[
+      {q:'Wie viele Hektar Müller-Thurgau gab es weltweit auf dem Höhepunkt?',o:['22.000 ha','42.000 ha','5.000 ha','100.000 ha'],c:1,e:'Auf dem Höhepunkt waren es 42.000 ha – heute noch rund 22.000 ha.'},
+      {q:'Ab wie viel Oechsle beginnt die Beerenauslese?',o:['44 Oechsle','84 Oechsle','110 Oechsle','150 Oechsle'],c:2,e:'Ab 44 Oechsle Tafelwein, ab 110 Oechsle Beerenauslese.'},
+      {q:'Wie viele Riechzellen sitzen etwa in der Riechschleimhaut?',o:['2–3 Millionen','20–30 Millionen','200–300 Millionen','400'],c:1,e:'20–30 Millionen Riechzellen mit rund 400 Rezeptortypen – so unterscheiden wir ~10.000 Gerüche.'},
+      {q:'Wie lang ist die Mosel?',o:['246 km','546 km','846 km','1.146 km'],c:1,e:'Die Mosel ist 546 km lang und umfasst 8.800 ha Rebfläche.'},
+      {q:'Wie viel Rebfläche vernichtete die Reblaus in Frankreich (1865–1885)?',o:['ca. 250.000 ha','ca. 2,5 Millionen ha','ca. 25 Millionen ha','ca. 50.000 ha'],c:1,e:'Rund 2,5 Millionen Hektar – ein Grossteil des französischen Weinbaus.'},
+      {q:'Welche Hangneigung hat der steilste Weinberg Europas (Bremmer Calmont)?',o:['ca. 30 %','ca. 50 %','fast 70 %','über 90 %'],c:2,e:'Fast 70 % Hangneigung – reine Handarbeit am Schiefer.'},
+      {q:'Wie viele Sonnenstunden pro Jahr hat das Wallis?',o:['1.500','2.000','2.500','3.500'],c:2,e:'Rund 2.500 Sonnenstunden – Weinbau bis über 1.000 m Höhe.'},
+      {q:'Was kostet der teuerste Weinberg Deutschlands (Bernkasteler Doctor) pro Hektar?',o:['0,5–1 Mio. €','4–8 Mio. €','15–20 Mio. €','50 Mio. €'],c:1,e:'4–8 Millionen Euro pro Hektar – der teuerste Weinberg Deutschlands.'}
+    ]
+  },
+  {
+    id:'silber', medal:'🥈', name:'Profi Silber', sub:'Namen & Persönlichkeiten – für echte Kenner.', badge:'profi2',
+    questions:[
+      {q:'Wem gelang der Durchbruch gegen die Reblaus (Pfropfen auf Unterlagsreben)?',o:['Louis Pasteur','Jules Émile Planchon','Jean-Baptiste Dumas','Robert Parker'],c:1,e:'Jules Émile Planchon in Montpellier entwickelte die Veredelung auf amerikanische Unterlagsreben.'},
+      {q:'Wer schuf die Reifezeitpunkt-Klassifizierung mit dem Gutedel als Referenzsorte?',o:['Victor Pulliat','Hermann Müller','Napoleon III.','Fritz Keller'],c:0,e:'Der Franzose Victor Pulliat ordnete die Sorten nach Reifezeitpunkt – mit dem Gutedel als Referenz.'},
+      {q:'Wie hiess Hermann Müller-Thurgaus berühmter Rebstock in Wädenswil?',o:['Stock 42','Stock 58','Reihe 1','Madeleine'],c:1,e:'Der „Stock 58" war sein Lieblingskind – er steht bis heute in Wädenswil.'},
+      {q:'Welche seltene Rebsorte wächst praktisch nur in der Bündner Herrschaft?',o:['Cornalin','Completer','Humagne','Heida'],c:1,e:'Der Completer (nur ca. 10 ha) – sein Name stammt vom Abendgebet der Mönche.'},
+      {q:'Wie heisst der berühmte kühlende Wind am Kap in Südafrika?',o:['Mistral','Cape Doctor','Föhn','Zonda'],c:1,e:'Der „Cape Doctor" – ein Südostwind, der für kühle Nächte und lange Reife sorgt.'},
+      {q:'Welcher Schweizer gründete 2002 das Spitzenweingut Creation in Südafrika?',o:['Jean-Philippe Rickenbach','Jean-Claude „JC" Martin','Patrick Adank','Luigi Zanini'],c:1,e:'Der Schweizer Winzer JC Martin und seine Frau Carolyn bauten Creation im Hemel-en-Aarde auf.'},
+      {q:'Welches Château ist das einzige Premier Cru Supérieur von Sauternes?',o:['Château Latour','Château d’Yquem','Château Margaux','Château Mouton'],c:1,e:'Château d’Yquem – die Spitze der edelsüssen Weine von Sauternes.'},
+      {q:'Welche autochthone Walliser Sorte gibt es seit 1313 (Kirsch- & Gewürznoten)?',o:['Rèze','Cornalin','Petite Arvine','Amigne'],c:1,e:'Der Cornalin – von der Familie Mercier in Sierre mitgerettet.'}
+    ]
+  },
+  {
+    id:'gold', medal:'🥇', name:'Profi Gold', sub:'Für wahre Weinlegenden – die härtesten Fragen.', badge:'profi3',
+    questions:[
+      {q:'Welcher Fluss trug historisch den Portwein flussabwärts nach Porto?',o:['Der Douro','Die Rhône','Der Tejo','Die Gironde'],c:0,e:'Der Douro brachte den Portwein flussabwärts nach Porto.'},
+      {q:'Seit welchem Jahr ist das Lavaux UNESCO-Weltkulturerbe?',o:['1985','2001','2007','2015'],c:2,e:'Seit 2007 – die Terrassen wurden ab 1141 von Zisterziensermönchen angelegt.'},
+      {q:'Carménère ist eine natürliche Kreuzung aus …',o:['Cabernet Franc × Gros Cabernet','Pinot Noir × Cinsaut','Cabernet × Merlot','Syrah × Grenache'],c:0,e:'Cabernet Franc × Gros Cabernet – aus dem Südwesten Frankreichs, erst 1994 in Chile anerkannt.'},
+      {q:'Welches Fungizid sorgte 2013 bei rund 900 Schweizer Winzern für Schäden?',o:['Bordeauxbrühe','„Moon Privilege" (Bayer)','Roundup','Schwefelkohlenstoff'],c:1,e:'„Moon Privilege" von Bayer – Gesamtschaden bis zu 80 Mio. Franken, das Mittel wurde suspendiert.'},
+      {q:'Welche ultraseltene Walliser Weisssorte ist seit dem Mittelalter fast unverändert?',o:['Heida','Rèze','Amigne','Petite Arvine'],c:1,e:'Die Rèze – praktisch unverändert seit dem Mittelalter, extrem selten.'},
+      {q:'Welches war das erste Weingut ausserhalb Nordamerikas mit LEED-Zertifizierung?',o:['Castello Banfi','Bodega Garzón','San Pedro','Creation'],c:1,e:'Das Weingut Garzón in Uruguay – in einen Felsabhang gebaut, höchster Nachhaltigkeitsstandard.'},
+      {q:'Seit welchem Jahr wird am Kap der Guten Hoffnung Wein gekeltert?',o:['1485','1659','1789','1925'],c:1,e:'Bereits 1659 – kurz nachdem die Niederländische Ostindien-Kompanie eine Versorgungsstation gründete.'},
+      {q:'Was gehört NICHT zu den „vier Sonnen" des Lavaux?',o:['Direkte Sonne','Reflexion auf dem See','Der Föhnwind','Wärme der Mauern'],c:2,e:'Die vier Sonnen sind: direkte Sonne, Reflexion auf dem See, Wärme der Mauern und die Leidenschaft der Winzer – Föhn gehört nicht dazu.'}
+    ]
+  }
+];
+
+/* Video-Bibliothek – aus dem Quellenverzeichnis (YouTube) */
+const VIDEO_GROUPS=[
+  {t:'Grundlagen, Terroir & Verkostung', vids:[
+    {id:'RiU53oTqXq0',t:'Thema Wein – vom edlen Tropfen bis zur Verkostung',s:'SRF Wissen / Einstein'},
+    {id:'R1Y9Tb8iD74',t:'Terroir mit Tiefgang: Wie deutsche Winzer Massstäbe setzen',s:'WELT Food'},
+    {id:'6IP-LIUZ-OQ',t:'Der Letzte seines Standes: Der Fassbinder',s:'Benedikt Kuby Filmproduktion'}
+  ]},
+  {t:'Schweizer Wein', vids:[
+    {id:'gW9P3lzvy-s',t:'Mysterium Schweizer Wein – Drei-Seen, Waadt, Wallis',s:'Johannes trinkt Wein'},
+    {id:'d-2CB4DpZ2c',t:'Schmidt Max und der Wein in der Schweiz',s:'Bayerischer Rundfunk'},
+    {id:'Q8BNA4sWqo4',t:'Die Spiritualität der Zisterzienser (Lavaux-Terrassen)',s:'CTS Hochschule Münster'},
+    {id:'oQJORPCS5XE',t:'Yvorne: Wine, Tradition, and Scenic Beauty',s:'Voyages Tours'}
+  ]},
+  {t:'Deutschland & die Mosel', vids:[
+    {id:'S2zTPZg_5q8',t:'Deutscher Wein an der Mosel – eine Riesling-Reise',s:'BR · Schmidt Max'},
+    {id:'fHHJoYzQuz8',t:'Zauberhafte Mosel (360° – GEO Reportage)',s:'wocomoTRAVEL'}
+  ]},
+  {t:'Frankreich & Weinkritik', vids:[
+    {id:'aUdwIEo53SU',t:'Robert Parker Wine Advocate Team',s:'Robert Parker Wine Advocate'},
+    {id:'uI8IwZsphCA',t:'The Truth about Robert Parker',s:'Bonner Private Wines'}
+  ]},
+  {t:'Österreich & die Neue Welt', vids:[
+    {id:'ZoxmAViSYWw',t:'Wein.Wege.Winzer – Region Südsteiermark',s:'POPUPMEDIA'},
+    {id:'C3ioJD3Ggug',t:'Discover Chile’s Signature Grape: Carménère (WSET 3)',s:'Wine With Jimmy'},
+    {id:'dcuCMmwY2gE',t:'Energieeffiziente Weinproduktion in Chile',s:'DW Deutsch · Global Ideas'},
+    {id:'eAzvhF9yp4g',t:'7 Best Wineries & Bodegas in Mendoza, Argentina',s:'Before You Go'},
+    {id:'O9rcb6FBmxw',t:'Bodega Garzón in Wine Folly (Uruguay · Tannat)',s:'Bodega Garzón'}
+  ]}
+];
+
+/* Text-Quellen zum Weiterlesen */
+const READS=[
+  {t:'Am Zürichsee setzt Müller-Thurgau 1892 eine neue Traubensorte',s:'Neue Zürcher Zeitung',u:'https://www.nzz.ch/zuerich/ld.1878368'},
+  {t:'Weingut Creation – wie ein Schweizer das beste Weingut Afrikas machte',s:'Stern',u:'https://www.stern.de/genuss/weingut-creation-'},
+  {t:'Klassifikation der Grands Crus im Médoc von 1855',s:'Bordeaux-Kompass',u:'https://bordeaux-kompass.de/klassifikation-der-grands-crus-im-medoc-von-1855/'},
+  {t:'Avondale Wines – biodynamisches Weingut (Wein „La Luna")',s:'Avondale, Paarl (ZA)',u:'https://www.avondalewine.co.za/'}
+];
+
+/* Aromarad für den Simulator */
+const AROMA_FAMS=[
+  {e:'🍓',n:'Rote Früchte',notes:['Kirsche','Himbeere','Erdbeere','Cranberry']},
+  {e:'🫐',n:'Dunkle Früchte',notes:['Brombeere','Pflaume','Cassis','Holunder']},
+  {e:'🍋',n:'Zitrus & Frisch',notes:['Zitrone','Grapefruit','grüner Apfel','Limette']},
+  {e:'🌸',n:'Blumig',notes:['Veilchen','Rose','Akazie','Holunderblüte']},
+  {e:'🌿',n:'Kräuter & Würze',notes:['Pfeffer','Zimt','Lorbeer','Minze']},
+  {e:'🪵',n:'Holz & Röstung',notes:['Vanille','Toast','Kaffee','Zedernholz']},
+  {e:'🍯',n:'Reife & Süsse',notes:['Honig','Trockenfrucht','Karamell','Dörraprikose']},
+  {e:'🍄',n:'Erdig & Reif',notes:['Waldboden','Pilz','Leder','Tabak']}
+];
+
+/* =====================================================================
+   STATE & ENGINE
+   ===================================================================== */
+const state={points:0, done:new Set(), badges:new Set(), correct:new Set(), name:'', finalPassed:false, profiDone:new Set()};
+
+function levelFor(p){let cur=LEVELS[0],idx=0;LEVELS.forEach((l,i)=>{if(p>=l.min){cur=l;idx=i}});return{cur,idx}}
+function renderHUD(){
+  document.getElementById('hudPoints').textContent=state.points;
+  const {cur,idx}=levelFor(state.points);
+  document.getElementById('hudLvlName').textContent=cur.n;
+  document.getElementById('hudLvlIco').textContent=cur.ico;
+  const next=LEVELS[idx+1];
+  let pct;
+  if(next){pct=Math.min(100,Math.round((state.points-cur.min)/(next.min-cur.min)*100));
+    document.getElementById('hudLvlNext').textContent=(next.min-state.points)+' Pkt bis '+next.n;}
+  else{pct=100;document.getElementById('hudLvlNext').textContent='Höchstes Level erreicht 👑';}
+  document.getElementById('xpFill').style.width=pct+'%';
+}
+function addPoints(p,reason){
+  const before=levelFor(state.points).idx;
+  state.points+=p; renderHUD();
+  const after=levelFor(state.points).idx;
+  if(after>before){const l=LEVELS[after];toast(l.ico,'Level '+(after+1)+': '+l.n,'Du bist aufgestiegen!');}
+}
+function grantBadge(id){
+  if(state.badges.has(id))return;
+  state.badges.add(id);
+  const b=BADGES.find(x=>x.id===id);
+  if(b)toast(b.e,'Abzeichen erhalten!',b.n);
+  renderBadges();
+}
+function toast(emoji,title,sub){
+  const w=document.getElementById('toasts');
+  const t=document.createElement('div');t.className='toast';
+  t.innerHTML='<div class="te">'+emoji+'</div><div><b>'+title+'</b><small>'+sub+'</small></div>';
+  w.appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .5s, transform .5s';t.style.opacity='0';t.style.transform='translateX(120%)';setTimeout(()=>t.remove(),500);},3400);
+}
+
+/* Navigation */
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='cellar')renderCellar();
+  if(id==='badges')renderBadges();
+  if(id==='degustation')startDeg();
+  if(id==='media'){renderMedia();fetchMedia().then(renderMedia);}
+  if(id==='profi')renderProfi();
+}
+function profiUnlocked(idx){
+  if(!state.finalPassed)return false;
+  if(idx===0)return true;
+  return state.profiDone.has(PRO_STAGES[idx-1].id);
+}
+function renderProfi(){
+  const g=document.getElementById('profiGrid');
+  if(!state.finalPassed){
+    g.innerHTML=`<div class="room locked" style="grid-column:1/-1"><div class="rico">🔒</div>
+      <h3>Noch verschlossen</h3><p>Die Meisterklasse öffnet sich, sobald du die Meisterprüfung im Keller bestanden hast. Meistere zuerst alle acht Lernstationen.</p></div>`;
+    return;
+  }
+  g.innerHTML='';
+  PRO_STAGES.forEach((s,i)=>{
+    const done=state.profiDone.has(s.id);
+    const unlocked=profiUnlocked(i);
+    const el=document.createElement('div');
+    el.className='room'+(done?' done':'')+(unlocked?'':' locked');
+    if(unlocked)el.onclick=()=>startProfi(s.id);
+    el.innerHTML=`${done?'<div class="ribbon">GEMEISTERT</div>':''}
+      <div class="rico">${s.medal}</div>
+      <h3>${s.name}</h3>
+      <p>${s.sub}</p>
+      <div class="rfoot">
+        <span class="rprog">${s.questions.length} Fragen · +${s.questions.length*40} Pkt</span>
+        <span class="${done?'badge-tick':(unlocked?'go':'rprog')}">${done?'✓ Bestanden':(unlocked?'Antreten →':'Gesperrt 🔒')}</span>
+      </div>`;
+    g.appendChild(el);
+  });
+}
+/* ---- Zentrale Uploads über Netlify-Function (für alle sichtbar) ---- */
+const MEDIA_API='/.netlify/functions/media';
+let USER_DATA={videos:[],reads:[]};
+let ADMIN_TOK='';
+function getAdmin(){if(ADMIN_TOK)return ADMIN_TOK;try{return sessionStorage.getItem('wa_admin')||''}catch(e){return ''}}
+function setAdmin(v){ADMIN_TOK=v||'';try{v?sessionStorage.setItem('wa_admin',v):sessionStorage.removeItem('wa_admin')}catch(e){}}
+function isAdmin(){return !!getAdmin();}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function parseYouTubeId(url){
+  if(!url)return null; url=url.trim();
+  const pats=[/[?&]v=([\w-]{11})/,/youtu\.be\/([\w-]{11})/,/\/embed\/([\w-]{11})/,/\/shorts\/([\w-]{11})/,/\/live\/([\w-]{11})/];
+  for(const p of pats){const m=url.match(p);if(m)return m[1];}
+  if(/^[\w-]{11}$/.test(url))return url;
+  return null;
+}
+async function fetchMedia(){
+  try{
+    const r=await fetch(MEDIA_API,{cache:'no-store'});
+    if(!r.ok)throw 0;
+    const d=await r.json();
+    USER_DATA.videos=Array.isArray(d.videos)?d.videos:[];
+    USER_DATA.reads=Array.isArray(d.reads)?d.reads:[];
+  }catch(e){/* Backend nicht erreichbar (z. B. lokale Vorschau) – nur Standardinhalte zeigen */}
+}
+function mergedVideoGroups(){
+  const groups=VIDEO_GROUPS.map(g=>({t:g.t,vids:g.vids.map(v=>({...v}))}));
+  USER_DATA.videos.forEach(uv=>{
+    let g=groups.find(x=>x.t.toLowerCase()===(uv.group||'').toLowerCase());
+    if(!g){g={t:uv.group||'Weitere Videos',vids:[]};groups.push(g);}
+    g.vids.push({...uv,user:true});
+  });
+  return groups;
+}
+function renderMedia(){
+  const b=document.getElementById('mediaBody');const del=isAdmin();
+  let html=mergedVideoGroups().map(g=>`<div class="vgroup"><h3>${esc(g.t)}</h3><div class="vgrid">${
+    g.vids.map(v=>v.user
+      ? `<div class="vcard user" onclick="window.open('https://www.youtube.com/watch?v=${v.id}','_blank','noopener')">
+          ${del?`<button class="vdel" title="Entfernen" onclick="event.stopPropagation();removeVideo('${v.uid}')">✕</button>`:''}
+          <span class="vthumb" style="background-image:url('https://img.youtube.com/vi/${v.id}/hqdefault.jpg')"></span>
+          <div class="vmeta"><h4>${esc(v.t)}</h4><span>${esc(v.s||'Eigenes Video')}</span><br><span class="utag">Community</span></div></div>`
+      : `<a class="vcard" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">
+          <span class="vthumb" style="background-image:url('https://img.youtube.com/vi/${v.id}/hqdefault.jpg')"></span>
+          <div class="vmeta"><h4>${esc(v.t)}</h4><span>${esc(v.s)}</span></div></a>`
+    ).join('')
+  }</div></div>`).join('');
+  const reads=READS.map(r=>({...r})).concat(USER_DATA.reads.map(r=>({...r,user:true})));
+  html+=`<div class="vgroup"><h3>Zum Weiterlesen</h3><div class="readlist">${
+    reads.map(r=>r.user
+      ? `<div class="readitem user" onclick="window.open('${esc(r.u)}','_blank','noopener')">
+          <span class="ri-ico">📄</span><div><h4>${esc(r.t)}</h4><span>${esc(r.s||'Eigene Quelle')}</span></div>
+          ${del?`<button class="vdel" style="position:static;margin-left:auto" title="Entfernen" onclick="event.stopPropagation();removeRead('${r.uid}')">✕</button>`:'<span class="ri-arr">↗</span>'}</div>`
+      : `<a class="readitem" href="${esc(r.u)}" target="_blank" rel="noopener">
+          <span class="ri-ico">📄</span><div><h4>${esc(r.t)}</h4><span>${esc(r.s)}</span></div><span class="ri-arr">↗</span></a>`
+    ).join('')
+  }</div></div>`;
+  html+=`<div style="text-align:center;margin-top:30px"><span class="adminlink" onclick="toggleAdmin()">${del?'🔓 Admin aktiv – abmelden':'🔧 Admin-Modus'}</span></div>`;
+  b.innerHTML=html;
+}
+/* ---- Modal ---- */
+function closeModal(){document.getElementById('modal').classList.remove('show');}
+function openVideoModal(){
+  const segs=VIDEO_GROUPS.map(g=>`<option value="${esc(g.t)}">`).join('');
+  document.getElementById('modalCard').innerHTML=`
+    <h3>🎬 Video hinzufügen</h3>
+    <div class="msub">YouTube-Link einfügen und ein Gebiet wählen. Der Eintrag wird zentral gespeichert und ist danach für alle sichtbar.</div>
+    <div class="fld"><label><b>YouTube-Link *</b></label><input id="mvUrl" placeholder="https://www.youtube.com/watch?v=…"></div>
+    <div class="fld"><label>Titel *</label><input id="mvTitle" placeholder="z. B. Weinbau im Wallis"></div>
+    <div class="fld"><label>Quelle / Kanal</label><input id="mvSource" placeholder="z. B. SRF"></div>
+    <div class="fld"><label>Gebiet / Segment</label><input id="mvGroup" list="seglist" placeholder="wählen oder neu eingeben…"><datalist id="seglist">${segs}</datalist></div>
+    <div class="merr" id="mvErr"></div>
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button><button class="btn btn-gold btn-sm" id="mvSave" onclick="addVideo()">Hinzufügen</button></div>`;
+  document.getElementById('modal').classList.add('show');
+  setTimeout(()=>document.getElementById('mvUrl').focus(),50);
+}
+async function addVideo(){
+  const url=document.getElementById('mvUrl').value;
+  const title=document.getElementById('mvTitle').value.trim();
+  const src=document.getElementById('mvSource').value.trim();
+  const grp=document.getElementById('mvGroup').value.trim()||'Weitere Videos';
+  const err=document.getElementById('mvErr');
+  const id=parseYouTubeId(url);
+  if(!id){err.textContent='Bitte einen gültigen YouTube-Link einfügen.';return;}
+  if(!title){err.textContent='Bitte einen Titel eingeben.';return;}
+  const btn=document.getElementById('mvSave');btn.disabled=true;btn.textContent='Speichern…';
+  try{
+    const r=await fetch(MEDIA_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'video',item:{id,t:title,s:src,group:grp}})});
+    if(!r.ok)throw 0;
+    const d=await r.json();USER_DATA.videos=d.videos||USER_DATA.videos;USER_DATA.reads=d.reads||USER_DATA.reads;
+    closeModal();renderMedia();toast('🎬','Video hinzugefügt',title);
+  }catch(e){btn.disabled=false;btn.textContent='Hinzufügen';err.textContent='Speichern fehlgeschlagen. Funktioniert nur auf der veröffentlichten Netlify-Seite (nicht in der Vorschau).';}
+}
+function openReadModal(){
+  document.getElementById('modalCard').innerHTML=`
+    <h3>📄 Quelle hinzufügen</h3>
+    <div class="msub">Link zu einem Artikel oder einer Website. Der Eintrag wird zentral gespeichert und ist danach für alle sichtbar.</div>
+    <div class="fld"><label><b>Link *</b></label><input id="mrUrl" placeholder="https://…"></div>
+    <div class="fld"><label>Titel *</label><input id="mrTitle" placeholder="z. B. Geschichte des Rieslings"></div>
+    <div class="fld"><label>Quelle</label><input id="mrSource" placeholder="z. B. NZZ"></div>
+    <div class="merr" id="mrErr"></div>
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button><button class="btn btn-gold btn-sm" id="mrSave" onclick="addRead()">Hinzufügen</button></div>`;
+  document.getElementById('modal').classList.add('show');
+  setTimeout(()=>document.getElementById('mrUrl').focus(),50);
+}
+async function addRead(){
+  let url=document.getElementById('mrUrl').value.trim();
+  const title=document.getElementById('mrTitle').value.trim();
+  const src=document.getElementById('mrSource').value.trim();
+  const err=document.getElementById('mrErr');
+  if(!/^https?:\/\/.+/i.test(url)){err.textContent='Bitte einen gültigen Link (mit https://) eingeben.';return;}
+  if(!title){err.textContent='Bitte einen Titel eingeben.';return;}
+  const btn=document.getElementById('mrSave');btn.disabled=true;btn.textContent='Speichern…';
+  try{
+    const r=await fetch(MEDIA_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'read',item:{u:url,t:title,s:src}})});
+    if(!r.ok)throw 0;
+    const d=await r.json();USER_DATA.videos=d.videos||USER_DATA.videos;USER_DATA.reads=d.reads||USER_DATA.reads;
+    closeModal();renderMedia();toast('📄','Quelle hinzugefügt',title);
+  }catch(e){btn.disabled=false;btn.textContent='Hinzufügen';err.textContent='Speichern fehlgeschlagen. Funktioniert nur auf der veröffentlichten Netlify-Seite (nicht in der Vorschau).';}
+}
+async function apiDelete(type,id){
+  try{
+    const r=await fetch(MEDIA_API,{method:'DELETE',headers:{'Content-Type':'application/json','x-admin-token':getAdmin()},body:JSON.stringify({type,uid:id})});
+    if(r.status===401){toast('🔒','Kein Zugriff','Falsches Admin-Passwort');setAdmin('');renderMedia();return;}
+    if(!r.ok)throw 0;
+    const d=await r.json();USER_DATA.videos=d.videos||[];USER_DATA.reads=d.reads||[];renderMedia();
+  }catch(e){toast('⚠️','Fehler','Löschen fehlgeschlagen');}
+}
+function removeVideo(id){apiDelete('video',id);}
+function removeRead(id){apiDelete('read',id);}
+function toggleAdmin(){
+  if(isAdmin()){setAdmin('');renderMedia();toast('🔒','Admin-Modus beendet','');return;}
+  document.getElementById('modalCard').innerHTML=`
+    <h3>🔧 Admin-Modus</h3>
+    <div class="msub">Zum Löschen von Community-Einträgen. Passwort = der Wert der Variable ADMIN_TOKEN aus deinen Netlify-Einstellungen.</div>
+    <div class="fld"><label>Admin-Passwort</label><input id="madm" type="password" placeholder="••••••••"></div>
+    <div class="merr" id="madmErr"></div>
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button><button class="btn btn-gold btn-sm" onclick="doAdmin()">Aktivieren</button></div>`;
+  document.getElementById('modal').classList.add('show');
+  setTimeout(()=>document.getElementById('madm').focus(),50);
+}
+function doAdmin(){
+  const v=document.getElementById('madm').value.trim();
+  if(!v){document.getElementById('madmErr').textContent='Bitte Passwort eingeben.';return;}
+  setAdmin(v);closeModal();renderMedia();toast('🔓','Admin-Modus aktiv','Lösch-Buttons erscheinen jetzt');
+}
+
+/* Cellar */
+function renderCellar(){
+  const g=document.getElementById('cellarGrid');g.innerHTML='';
+  MODULES.forEach(m=>{
+    const done=state.done.has(m.id);
+    const el=document.createElement('div');
+    el.className='room'+(done?' done':'');
+    el.onclick=()=>openModule(m.id);
+    el.innerHTML=`${done?'<div class="ribbon">GEMEISTERT</div>':''}
+      <div class="rico">${m.ico}</div>
+      <h3>${m.title}</h3>
+      <p>${m.sub}</p>
+      <div class="rfoot">
+        <span class="rprog">${m.quiz.length} Fragen · +${m.quiz.length*20+50} Pkt</span>
+        <span class="${done?'badge-tick':'go'}">${done?'✓ Abgeschlossen':'Betreten →'}</span>
+      </div>`;
+    g.appendChild(el);
+  });
+  const n=state.done.size, total=MODULES.length;
+  document.getElementById('finalProg').textContent=n+' / '+total+' Stationen';
+  const unlocked=n>=total;
+  document.getElementById('finalGo').textContent=unlocked?(state.finalPassed?'✓ Bestanden':'Jetzt antreten →'):'Gesperrt 🔒';
+  document.getElementById('finalRoom').classList.toggle('locked',!unlocked);
+  document.getElementById('finalHint').textContent=unlocked
+    ?'Alle Stationen gemeistert! Stelle dich der Meisterprüfung und sichere dir dein Diplom zum Kellermeister.'
+    :'Absolviere zuerst alle '+total+' Lernstationen, um die Abschlussprüfung freizuschalten und dein Diplom zu erhalten.';
+}
+
+/* Module */
+function openModule(id){
+  const m=MODULES.find(x=>x.id===id);
+  const body=document.getElementById('modBody');
+  let html=`<div class="mod-hero" style="background:linear-gradient(150deg, ${m.color}aa, rgba(50,8,19,.4))">
+    <div class="rico">${m.ico}</div><h2>${m.title}</h2><p>${m.sub}</p></div>`;
+  m.lessons.forEach((l,i)=>{
+    html+=`<div class="lesson"><h3>${l.fact?'💡':`<span class="n">${i+1}</span>`}${l.h}</h3>`;
+    if(l.b)html+=`<p>${l.b}</p>`;
+    if(l.chips){html+='<div class="chips">'+l.chips.map(c=>`<span class="chip">${c}</span>`).join('')+'</div>';}
+    if(l.fact)html+=`<div class="factbox"><b>${l.fact[0]}</b><p>${l.fact[1]}</p></div>`;
+    html+='</div>';
+  });
+  if(m.disk)html+=`<div class="diskbox"><span class="dk">💬 Zum Nachdenken</span><p>${m.disk}</p></div>`;
+  html+=`<div style="text-align:center;margin-top:26px">
+    <button class="btn btn-gold" onclick="startQuiz('${m.id}')">🧠 Wissen testen · ${m.quiz.length} Fragen</button></div>`;
+  body.innerHTML=html;
+  go('module');
+}
+
+/* Quiz engine */
+let Q={list:[],i:0,ok:0,mode:'module',modId:null};
+function startQuiz(modId){
+  const m=MODULES.find(x=>x.id===modId);
+  Q={list:m.quiz,i:0,ok:0,mode:'module',modId};
+  document.getElementById('quizBack').onclick=()=>openModule(modId);
+  go('quiz');renderQ();
+}
+function tryFinal(){
+  if(state.done.size<MODULES.length){toast('🔒','Noch gesperrt','Meistere zuerst alle '+MODULES.length+' Stationen');return;}
+  Q={list:FINAL_EXAM,i:0,ok:0,mode:'final',modId:null};
+  document.getElementById('quizBack').onclick=()=>go('cellar');
+  go('quiz');renderQ();
+}
+function startProfi(id){
+  const idx=PRO_STAGES.findIndex(s=>s.id===id);
+  if(!profiUnlocked(idx)){toast('🔒','Noch gesperrt','Bestehe zuerst die vorige Stufe');return;}
+  const s=PRO_STAGES[idx];
+  Q={list:s.questions,i:0,ok:0,mode:'profi',stage:id};
+  document.getElementById('quizBack').onclick=()=>go('profi');
+  go('quiz');renderQ();
+}
+function renderQ(){
+  const b=document.getElementById('quizBody');
+  const q=Q.list[Q.i];
+  const dots=Q.list.map((_,i)=>`<i class="${i<Q.i?'ok':(i===Q.i?'cur':'')}"></i>`).join('');
+  let title='Wissenstest';
+  if(Q.mode==='final')title='👑 Meisterprüfung';
+  else if(Q.mode==='profi'){const s=PRO_STAGES.find(x=>x.id===Q.stage);title=s.medal+' '+s.name;}
+  b.innerHTML=`<div class="quiz-card">
+    <div class="quiz-top"><span class="qcount">${title} · Frage ${Q.i+1} / ${Q.list.length}</span><span class="qdots">${dots}</span></div>
+    <div class="qtext">${q.q}</div>
+    <div class="opts" id="opts">${q.o.map((o,i)=>`<button class="opt" onclick="answer(${i})"><span class="kbd">${String.fromCharCode(65+i)}</span><span>${o}</span></button>`).join('')}</div>
+    <div class="explain" id="explain"></div>
+    <div class="quiz-foot"><span class="earn" id="earn"></span><button class="btn btn-gold" id="nextBtn" style="display:none" onclick="nextQ()">Weiter →</button></div>
+  </div>`;
+}
+function answer(i){
+  const q=Q.list[Q.i];
+  const opts=document.querySelectorAll('#opts .opt');
+  opts.forEach((o,idx)=>{o.disabled=true;if(idx===q.c)o.classList.add('correct');if(idx===i&&i!==q.c)o.classList.add('wrong');});
+  const dots=document.querySelectorAll('.qdots i');
+  const ok=i===q.c;
+  dots[Q.i].className=ok?'ok':'no';
+  const ex=document.getElementById('explain');
+  ex.innerHTML=(ok?'<b>Richtig! 🍷</b> ':'<b>Nicht ganz. </b>')+q.e;
+  ex.classList.add('show');
+  if(ok){Q.ok++;const pts=Q.mode==='final'?30:(Q.mode==='profi'?40:20);addPoints(pts);
+    const key=Q.modId+'-'+Q.i;
+    document.getElementById('earn').textContent='+'+pts+' Weinpunkte';
+    document.getElementById('earn').classList.add('show');}
+  document.getElementById('nextBtn').style.display='inline-flex';
+  document.getElementById('nextBtn').textContent=(Q.i<Q.list.length-1)?'Weiter →':'Auswertung →';
+}
+function nextQ(){
+  if(Q.i<Q.list.length-1){Q.i++;renderQ();}
+  else finishQuiz();
+}
+function finishQuiz(){
+  const b=document.getElementById('quizBody');
+  const total=Q.list.length, ok=Q.ok, pct=Math.round(ok/total*100);
+  if(Q.mode==='module'){
+    const m=MODULES.find(x=>x.id===Q.modId);
+    const first=!state.done.has(m.id);
+    let bonusMsg='';
+    if(ok>=Math.ceil(total*0.5)){ // pass threshold
+      if(first){state.done.add(m.id);addPoints(50);grantBadge(m.badge);bonusMsg='<p>+50 Bonuspunkte fürs Abschliessen &amp; ein neues Abzeichen! 🏅</p>';}
+      else bonusMsg='<p>Station bereits gemeistert – schön, dass du dein Wissen auffrischst!</p>';
+    } else {
+      bonusMsg='<p>Du brauchst mindestens die Hälfte richtig, um die Station zu meistern. Schau dir die Lektion nochmal an und versuch es erneut!</p>';
+    }
+    b.innerHTML=`<div class="result"><div class="big">${ok===total?'🏆':(ok>=total*0.5?'🍷':'📖')}</div>
+      <h2>${ok===total?'Perfekt!':(ok>=total*0.5?'Bestanden!':'Fast geschafft')}</h2>
+      <div class="score-ring">${ok} / ${total} richtig · ${pct}%</div>
+      ${bonusMsg}
+      <div class="cta-row" style="margin-top:22px">
+        <button class="btn btn-gold" onclick="go('cellar')">🗺️ Zurück zum Keller</button>
+        <button class="btn btn-ghost" onclick="startQuiz('${m.id}')">🔁 Nochmal</button>
+      </div></div>`;
+    renderCellar();
+  } else if(Q.mode==='final'){
+    const passed=ok>=6;
+    const firstPass=passed && !state.finalPassed;
+    if(firstPass){state.finalPassed=true;addPoints(60);grantBadge('diploma');}
+    b.innerHTML=`<div class="result"><div class="big">${passed?'👑':'📖'}</div>
+      <h2>${passed?'Meisterprüfung bestanden!':'Noch nicht ganz'}</h2>
+      <div class="score-ring">${ok} / ${total} richtig · ${pct}%</div>
+      <p>${passed?'Herzlichen Glückwunsch, Kellermeister! Dein Diplom wartet in der Sammlung – und jetzt öffnet sich die Meisterklasse mit drei Profi-Stufen.':'Für das Diplom brauchst du mindestens 6 von 8 richtig. Frische dein Wissen in den Stationen auf und tritt erneut an!'}</p>
+      <div class="cta-row" style="margin-top:22px">
+        ${passed?'<button class="btn btn-gold" onclick="go(\'profi\')">🎓 Meisterklasse starten</button>':''}
+        ${passed?'<button class="btn btn-ghost" onclick="go(\'badges\')">📜 Diplom ansehen</button>':''}
+        <button class="btn btn-ghost" onclick="tryFinal()">🔁 Nochmal versuchen</button>
+        <button class="btn btn-ghost" onclick="go('cellar')">🗺️ Zum Keller</button>
+      </div></div>`;
+  } else if(Q.mode==='profi'){
+    const idx=PRO_STAGES.findIndex(s=>s.id===Q.stage), s=PRO_STAGES[idx];
+    const need=Math.ceil(total*0.6);
+    const passed=ok>=need;
+    const first=passed && !state.profiDone.has(s.id);
+    if(first){state.profiDone.add(s.id);grantBadge(s.badge);}
+    const next=PRO_STAGES[idx+1];
+    const allDone=PRO_STAGES.every(x=>state.profiDone.has(x.id));
+    let msg;
+    if(passed){
+      msg = allDone ? '<p>Unglaublich – du hast <b>alle Profi-Stufen</b> gemeistert! Du gehörst zu den wahren Weinlegenden. 🌟</p>'
+        : (first ? `<p>Stufe bestanden – Abzeichen ${s.medal} freigeschaltet! ${next?'Die nächste Stufe ist jetzt offen.':''}</p>`
+                 : '<p>Erneut bestanden – Wissen sitzt!</p>');
+    } else {
+      msg=`<p>Du brauchst mindestens ${need} von ${total} richtig. Knapp – schau nochmal in die Lernstationen und tritt wieder an!</p>`;
+    }
+    b.innerHTML=`<div class="result"><div class="big">${passed?s.medal:'📖'}</div>
+      <h2>${passed?(allDone?'Meisterklasse komplett!':s.name+' bestanden!'):'Fast geschafft'}</h2>
+      <div class="score-ring">${ok} / ${total} richtig · ${pct}%</div>
+      ${msg}
+      <div class="cta-row" style="margin-top:22px">
+        ${(passed&&next&&profiUnlocked(idx+1))?`<button class="btn btn-gold" onclick="startProfi('${next.id}')">${next.medal} Weiter zu ${next.name}</button>`:''}
+        <button class="btn btn-ghost" onclick="startProfi('${s.id}')">🔁 Nochmal</button>
+        <button class="btn btn-ghost" onclick="go('profi')">🎓 Meisterklasse</button>
+      </div></div>`;
+  }
+}
+
+/* Badges + Certificate */
+function renderBadges(){
+  const g=document.getElementById('badgeGrid');g.innerHTML='';
+  BADGES.forEach(b=>{
+    const have=state.badges.has(b.id);
+    const el=document.createElement('div');el.className='bcard'+(have?' have':'');
+    el.innerHTML=`<div class="be">${b.e}</div><h4>${b.n}</h4><p>${have?b.d:'Noch nicht freigeschaltet'}</p>`;
+    g.appendChild(el);
+  });
+  const c=document.getElementById('certArea');
+  if(state.finalPassed){
+    c.innerHTML=`<div class="sec-head" style="margin-bottom:18px"><h2 style="font-size:34px">Dein Diplom 📜</h2></div>
+      <div class="name-input">
+        <input id="certName" placeholder="Dein Name…" value="${state.name}" oninput="state.name=this.value;document.getElementById('certNameOut').textContent=this.value||'Kellermeister/in'">
+      </div>
+      <div class="cert" style="margin-top:20px">
+        <div class="seal">🍇</div>
+        <div class="ct-k">Weinakademie Rickenbach</div>
+        <h2>Diplom zum Kellermeister</h2>
+        <p>Hiermit wird bestätigt, dass</p>
+        <div class="ct-name" id="certNameOut">${state.name||'Kellermeister/in'}</div>
+        <p>alle Lernstationen des Weinkellers durchlaufen und die Meisterprüfung erfolgreich bestanden hat – mit fundiertem Wissen über Rebsorten, Reblausgeschichte, Sensorik, Weinregionen, Handwerk sowie die Weinwelt der Schweiz, Europas und der Neuen Welt.</p>
+        <div class="ct-foot">
+          <div>Weinpunkte<b>${state.points}</b></div>
+          <div>Auszeichnung<b>${levelFor(state.points).cur.n} ${levelFor(state.points).cur.ico}</b></div>
+          <div>Ausgestellt<b>Rickenbach</b></div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:18px"><button class="btn btn-ghost" onclick="window.print()">🖨️ Diplom drucken / als PDF speichern</button></div>`;
+  } else {
+    c.innerHTML=`<div class="note-tip">📜 Bestehe die <b>Meisterprüfung</b> im Keller, um dein persönliches Diplom freizuschalten.</div>`;
+  }
+}
+
+/* ===== Degustations-Simulator ===== */
+let D={step:0,color:null,aromas:new Set(),sweet:2,acid:3,tannin:3,body:3};
+function startDeg(){D={step:0,color:null,aromas:new Set(),sweet:2,acid:3,tannin:3,body:3};renderDeg();}
+function degSteps(active){
+  const steps=['👁️ Auge','👃 Nase','👅 Gaumen','📜 Fazit'];
+  return '<div class="deg-steps">'+steps.map((s,i)=>`<div class="ds ${i===active?'active':(i<active?'done':'')}">${i<active?'✓ ':''}${s}</div>`).join('')+'</div>';
+}
+const COLORS=[
+  {e:'💛',n:'Strohgelb',hint:'Junger, frischer Weisswein',liquid:'linear-gradient(180deg,#f0e17a,#e8d24e)'},
+  {e:'🧈',n:'Goldgelb',hint:'Gereifter oder holzausgebauter Weisswein',liquid:'linear-gradient(180deg,#e8c84e,#c99a2e)'},
+  {e:'🌹',n:'Lachsrosa',hint:'Rosé – frisch und fruchtig',liquid:'linear-gradient(180deg,#f2a9a0,#e07d78)'},
+  {e:'🍒',n:'Rubinrot',hint:'Jugendlicher Rotwein (z. B. Pinot Noir)',liquid:'linear-gradient(180deg,#9c223a,#7b1e3a)'},
+  {e:'🟣',n:'Purpur/Violett',hint:'Sehr junger, kräftiger Rotwein',liquid:'linear-gradient(180deg,#5a1440,#3a0b2a)'},
+  {e:'🧱',n:'Ziegelrot',hint:'Gereifter, älterer Rotwein',liquid:'linear-gradient(180deg,#a34b2e,#7a3320)'}
+];
+function renderDeg(){
+  const s=document.getElementById('degStage');
+  const liquid=D.color!=null?COLORS[D.color].liquid:'linear-gradient(180deg,#7b1e3a,#4a0e1f)';
+  const glass=`<div class="glass-wrap"><div class="wineglass">
+     <div class="bowl"><div class="liquid" style="background:${liquid}"></div></div>
+     <div class="stem"></div><div class="foot"></div></div></div>`;
+
+  if(D.step===0){
+    s.innerHTML=degSteps(0)+glass+
+      `<div class="deg-h">👁️ Schau genau hin</div>
+       <div class="deg-sub">Halte das Glas vor eine helle Fläche und neige es. Welche Farbe siehst du? Die Farbe verrät Sorte, Alter und Reife.</div>
+       <div class="pickgrid">${COLORS.map((c,i)=>`<button class="pick ${D.color===i?'sel':''}" onclick="pickColor(${i})"><span class="pe">${c.e}</span>${c.n}</button>`).join('')}</div>
+       ${D.color!=null?`<div class="note-out"><b>${COLORS[D.color].n}:</b> ${COLORS[D.color].hint}.</div>`:''}
+       <div class="deg-nav"><span></span><button class="btn btn-gold" onclick="degNext()" ${D.color==null?'disabled style=opacity:.4;cursor:default':''}>Weiter zur Nase →</button></div>`;
+  }
+  else if(D.step===1){
+    s.innerHTML=degSteps(1)+glass+
+      `<div class="deg-h">👃 Die Nase im Glas</div>
+       <div class="deg-sub">Schwenke das Glas und rieche. Öffne die Aromafamilien und wähle, was du wahrnimmst – so trainierst du deinen Geruchssinn. (mind. 2 wählen)</div>
+       <div class="aroma-fams">${AROMA_FAMS.map((f,i)=>{
+         const open=D.aromas.has(i);
+         return `<div class="fam ${open?'open':''}" onclick="toggleAroma(${i})">
+           <div class="fhead"><span class="fe">${f.e}</span>${f.n}${open?' ✓':''}</div>
+           <div class="notes">${f.notes.map(n=>`<span>${n}</span>`).join('')}</div></div>`;
+       }).join('')}</div>
+       <div class="deg-nav"><button class="btn btn-ghost" onclick="degBack()">← Auge</button>
+       <button class="btn btn-gold" onclick="degNext()" ${D.aromas.size<2?'disabled style=opacity:.4;cursor:default':''}>Weiter zum Gaumen →</button></div>`;
+  }
+  else if(D.step===2){
+    s.innerHTML=degSteps(2)+glass+
+      `<div class="deg-h">👅 Am Gaumen</div>
+       <div class="deg-sub">Nimm einen Schluck und lass ihn kreisen. Wie ausgeprägt sind die vier Grundstrukturen? Stell die Regler nach deinem Eindruck ein.</div>
+       <div style="max-width:520px;margin:0 auto">
+       ${slider('sweet','Süsse','trocken','süss')}
+       ${slider('acid','Säure','weich','frisch/spritzig')}
+       ${slider('tannin','Tannin','samtig','kräftig/pelzig')}
+       ${slider('body','Körper','leicht','vollmundig')}
+       </div>
+       <div class="deg-nav"><button class="btn btn-ghost" onclick="degBack()">← Nase</button>
+       <button class="btn btn-gold" onclick="degNext()">Fazit erstellen →</button></div>`;
+  }
+  else {
+    // Fazit
+    const cols=COLORS[D.color];
+    const aromaNames=[...D.aromas].map(i=>AROMA_FAMS[i].n.toLowerCase());
+    const lvl=v=>['sehr niedrig','niedrig','mittel','ausgeprägt','sehr ausgeprägt'][v-1]||'mittel';
+    const sweetTxt=['knochentrocken','trocken','halbtrocken','lieblich','süss'][D.sweet-1]||'trocken';
+    const note=`Ein Wein von <b>${cols.n.toLowerCase()}er</b> Farbe (${cols.hint.toLowerCase()}). In der Nase zeigen sich Noten von <b>${aromaNames.join(', ')}</b>. Am Gaumen wirkt er <b>${sweetTxt}</b>, mit <b>${lvl(D.acid)}er Säure</b>, <b>${lvl(D.tannin)}em Tannin</b> und <b>${lvl(D.body)}em Körper</b>.`;
+    if(!state.badges.has('nose')){grantBadge('nose');addPoints(40);}
+    s.innerHTML=degSteps(3)+glass+
+      `<div class="deg-h">📜 Deine Verkostungsnotiz</div>
+       <div class="note-out">${note}</div>
+       <div class="note-out" style="border-color:rgba(78,141,91,.4)"><b>🌹 Abzeichen „Feine Nase" freigeschaltet</b> · +40 Weinpunkte für deine erste vollständige Degustation!</div>
+       <div class="deg-nav"><button class="btn btn-ghost" onclick="startDeg()">🔁 Neue Verkostung</button>
+       <button class="btn btn-gold" onclick="go('cellar')">🗺️ Zum Keller</button></div>`;
+  }
+}
+function slider(key,label,lo,hi){
+  return `<div class="slider-row"><label><span>${label}</span><b>${['','sehr niedrig','niedrig','mittel','ausgeprägt','sehr ausgeprägt'][D[key]]}</b></label>
+    <input type="range" min="1" max="5" value="${D[key]}" oninput="D['${key}']=+this.value;this.previousElementSibling.querySelector('b').textContent=['','sehr niedrig','niedrig','mittel','ausgeprägt','sehr ausgeprägt'][this.value]">
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:#a9906e;margin-top:3px"><span>${lo}</span><span>${hi}</span></div></div>`;
+}
+function pickColor(i){D.color=i;renderDeg();}
+function toggleAroma(i){if(D.aromas.has(i))D.aromas.delete(i);else D.aromas.add(i);renderDeg();}
+function degNext(){if(D.step<3){D.step++;renderDeg();}}
+function degBack(){if(D.step>0){D.step--;renderDeg();}}
+
+/* init */
+fetchMedia();
+renderHUD();
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();});
+</script>
+</body>
+</html>
