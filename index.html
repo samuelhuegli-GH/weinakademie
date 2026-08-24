@@ -323,6 +323,9 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .galilei .g-text{font-size:14.5px;line-height:1.68;color:#e3d4bd}
 .galilei .g-text b{color:var(--gold-bright)}
 @media(max-width:640px){.galilei{flex-direction:column;text-align:center;padding:26px 20px}}
+.pdf-dl{display:inline-flex;align-items:center;gap:8px;margin-top:12px;padding:8px 16px;border-radius:24px;border:1px solid rgba(201,162,75,.45);background:rgba(201,162,75,.1);color:var(--gold-bright);font-size:13px;font-weight:600;text-decoration:none;transition:all .16s}
+.pdf-dl:hover{background:rgba(201,162,75,.2);border-color:var(--gold-bright);transform:translateY(-1px)}
+.pdf-dl svg{flex:none}
 
 @media(max-width:720px){
   .feature-row{grid-template-columns:repeat(2,1fr)}
@@ -438,7 +441,8 @@ input[type=range]{width:100%;accent-color:var(--gold)}
           <div class="g-text">Wein ist <b>gespeicherte Sonnenenergie</b>. Poetisch und doch physikalisch korrekt beschrieb Galilei, wie die Rebe die Kraft der Sonne einfängt: Die Blätter wandeln <b>Sonnenlicht und CO₂</b> durch Photosynthese in <b>Zucker</b> um. Bei der Gärung verwandelt die Hefe diesen Zucker in <b>Alkohol</b> – so wird aus eingefangenem Sonnenlicht der Wein im Glas.</div>
         </div>
       </div>
-      <div class="note-tip">💡 Interaktive Lernplattform auf Basis der Zusammenfassung „Wein – Weinbau, Rebsorten und Weinregionen der Welt" (v2.2) von Josip, Mario &amp; Davor, entstanden mit Jean-Philippe Rickenbach. Inhalte &amp; Fragen jederzeit erweiterbar.</div>
+      <div class="note-tip">💡 Interaktive Lernplattform auf Basis der Zusammenfassung „Wein – Weinbau, Rebsorten und Weinregionen der Welt" (v2.2) von Josip, Mario &amp; Davor, entstanden mit Jean-Philippe Rickenbach. Inhalte &amp; Fragen jederzeit erweiterbar.<br>
+        <a class="pdf-dl" href="Wein-Zusammenfassung.pdf" download><svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5z" fill="#c9a24b" stroke="#e6c877" stroke-width="1.3" stroke-linejoin="round"/><path d="M14 3v5h5" stroke="#2a0611" stroke-width="1.3" stroke-linejoin="round"/><text x="12" y="17.5" text-anchor="middle" font-size="6.4" font-family="Arial, sans-serif" font-weight="700" fill="#2a0611">PDF</text></svg>Zusammenfassung als PDF herunterladen</a></div>
     </div>
   </div>
 </section>
@@ -545,7 +549,7 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 <div class="footer">
   <b>Weinakademie Rickenbach</b> · Interaktives Lernerlebnis nach der Wein-Zusammenfassung v2.2<br>
   Inhalte: Josip · Mario · Davor · mit Jean-Philippe Rickenbach<br>
-  Erste Web-Version &amp; Visualisierung: Samuel Hügli &amp; Claude
+  Erste Web-Version &amp; Visualisierung: Samuel Hügli &amp; Claude AI, Climartis AG
 </div>
 
 <script>
