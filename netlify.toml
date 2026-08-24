@@ -8,3 +8,9 @@
   from = "/api/media"
   to = "/.netlify/functions/media"
   status = 200
+
+# Seite (inkl. PDF) aus Suchmaschinen fernhalten – gilt für alle Dateien
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"

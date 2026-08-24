@@ -1,0 +1,3 @@
+# Diese Seite soll nicht in Suchmaschinen erscheinen (privates, nicht kommerzielles Projekt).
+User-agent: *
+Disallow: /
