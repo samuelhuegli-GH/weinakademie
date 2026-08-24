@@ -311,6 +311,27 @@ input[type=range]{width:100%;accent-color:var(--gold)}
 .modal-foot{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
 .adminlink{font-size:12px;color:#8a7452;cursor:pointer;letter-spacing:.5px}
 .adminlink:hover{color:var(--gold)}
+/* Kategorie-Verwaltung */
+.cat-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.cat-head h3{margin:0}
+.cat-tools{display:flex;gap:6px;align-items:center}
+.ctool{width:28px;height:28px;border-radius:8px;border:1px solid rgba(201,162,75,.3);background:rgba(201,162,75,.08);color:var(--gold-bright);font-size:13px;line-height:1;display:grid;place-items:center;transition:all .15s}
+.ctool:hover:not(:disabled){background:rgba(201,162,75,.2);border-color:var(--gold)}
+.ctool:disabled{opacity:.3;cursor:default}
+.ctool-del:hover{background:var(--bad);border-color:var(--bad);color:#fff}
+.vcard.admin{position:relative}
+.itool{position:absolute;top:8px;right:8px;z-index:3;display:flex;gap:6px}
+.itool button{width:27px;height:27px;border-radius:50%;background:rgba(20,4,11,.85);border:1px solid rgba(201,162,75,.4);color:var(--cream);font-size:12px;line-height:1;display:grid;place-items:center;transition:all .15s}
+.itool button:hover{background:var(--gold);border-color:var(--gold-bright);color:#2a0611}
+.itool.inline{position:static;margin-left:auto}
+.readitem.admin{display:flex;align-items:center;gap:10px}
+.readitem.admin>a{display:flex;align-items:center;gap:13px;text-decoration:none;color:inherit;flex:1;min-width:0}
+.media-sep{text-align:center;margin:44px 0 26px;border-top:1px solid rgba(201,162,75,.18);padding-top:26px}
+.media-sep span{font-family:'Cormorant Garamond',serif;font-size:32px;color:var(--gold-bright)}
+.add-cat-row{margin:2px 0 12px}
+.emptyhint{font-size:12.5px;color:#a9906e;font-style:italic;padding:6px 2px 4px}
+.fld select{width:100%;padding:12px 14px;border-radius:10px;border:1px solid rgba(201,162,75,.35);background:rgba(30,8,14,.9);color:var(--cream);font-size:14.5px;font-family:inherit}
+.fld select:focus{outline:none;border-color:var(--gold-bright)}
 .backlink{display:inline-flex;align-items:center;gap:7px;color:#cbb794;font-size:13.5px;margin-bottom:20px;cursor:pointer}
 .backlink:hover{color:var(--gold-bright)}
 .footer{text-align:center;padding:34px 20px 46px;color:#9a8468;font-size:12.5px;border-top:1px solid rgba(201,162,75,.12)}
@@ -512,8 +533,8 @@ input[type=range]{width:100%;accent-color:var(--gold)}
       <p>Alle Filmquellen aus der Wein-Zusammenfassung – von der Reportage über Schweizer Winzer bis zum Fassbinder. Zum Ansehen einfach anklicken (öffnet YouTube).</p>
     </div>
     <div class="media-actions">
-      <button class="btn btn-gold btn-sm" onclick="openVideoModal()">➕ Video hinzufügen</button>
-      <button class="btn btn-ghost btn-sm" onclick="openReadModal()">➕ Quelle hinzufügen</button>
+      <button class="btn btn-gold btn-sm" onclick="openAdd('video')">➕ Video hinzufügen</button>
+      <button class="btn btn-ghost btn-sm" onclick="openAdd('read')">➕ Quelle hinzufügen</button>
     </div>
     <div class="media-note">Eigene Einträge werden zentral gespeichert und sind für alle Besucher sichtbar.</div>
     <div id="mediaBody"></div>
@@ -940,9 +961,8 @@ function renderProfi(){
     g.appendChild(el);
   });
 }
-/* ---- Zentrale Uploads über Netlify-Function (für alle sichtbar) ---- */
+/* ---- Mediathek & Weiterlesen: zentrale, verwaltbare Kategorien (Netlify Function) ---- */
 const MEDIA_API='/.netlify/functions/media';
-let USER_DATA={videos:[],reads:[]};
 let ADMIN_TOK='';
 function getAdmin(){if(ADMIN_TOK)return ADMIN_TOK;try{return sessionStorage.getItem('wa_admin')||''}catch(e){return ''}}
 function setAdmin(v){ADMIN_TOK=v||'';try{v?sessionStorage.setItem('wa_admin',v):sessionStorage.removeItem('wa_admin')}catch(e){}}
@@ -955,135 +975,269 @@ function parseYouTubeId(url){
   if(/^[\w-]{11}$/.test(url))return url;
   return null;
 }
+
+/* Fallback-Daten für die Vorschau (die echte Quelle ist das Backend) */
+const SEED_MEDIA={
+  video:{cats:[
+    {id:'g_grund',name:'Grundlagen, Terroir & Verkostung'},{id:'g_ch',name:'Schweiz'},{id:'g_de',name:'Deutschland'},
+    {id:'g_at',name:'Österreich'},{id:'g_fr',name:'Frankreich'},{id:'g_es',name:'Spanien'},{id:'g_za',name:'Südafrika'},{id:'g_nw',name:'Neue Welt'}],
+   items:[
+    {uid:'sv01',yt:'RiU53oTqXq0',t:'Thema Wein – vom edlen Tropfen bis zur Verkostung',s:'SRF Wissen / Einstein',cat:'g_grund'},
+    {uid:'sv02',yt:'R1Y9Tb8iD74',t:'Terroir mit Tiefgang: Wie deutsche Winzer Massstäbe setzen',s:'WELT Food',cat:'g_grund'},
+    {uid:'sv03',yt:'6IP-LIUZ-OQ',t:'Der Letzte seines Standes: Der Fassbinder',s:'Benedikt Kuby Filmproduktion',cat:'g_grund'},
+    {uid:'sv04',yt:'gW9P3lzvy-s',t:'Mysterium Schweizer Wein – Drei-Seen, Waadt, Wallis',s:'Johannes trinkt Wein',cat:'g_ch'},
+    {uid:'sv05',yt:'d-2CB4DpZ2c',t:'Schmidt Max und der Wein in der Schweiz',s:'Bayerischer Rundfunk',cat:'g_ch'},
+    {uid:'sv06',yt:'Q8BNA4sWqo4',t:'Die Spiritualität der Zisterzienser (Lavaux-Terrassen)',s:'CTS Hochschule Münster',cat:'g_ch'},
+    {uid:'sv07',yt:'oQJORPCS5XE',t:'Yvorne: Wine, Tradition, and Scenic Beauty',s:'Voyages Tours',cat:'g_ch'},
+    {uid:'sv08',yt:'S2zTPZg_5q8',t:'Deutscher Wein an der Mosel – eine Riesling-Reise',s:'BR · Schmidt Max',cat:'g_de'},
+    {uid:'sv09',yt:'fHHJoYzQuz8',t:'Zauberhafte Mosel (360° – GEO Reportage)',s:'wocomoTRAVEL',cat:'g_de'},
+    {uid:'sv19',yt:'dIm7pyNB88g',t:'Geisenheim – Jung im Herzen, verwurzelt im Wein',s:'Rheingau.deineRegion',cat:'g_de'},
+    {uid:'sv10',yt:'ZoxmAViSYWw',t:'Wein.Wege.Winzer – Region Südsteiermark',s:'POPUPMEDIA',cat:'g_at'},
+    {uid:'sv20',yt:'VxR_0UiuXIs',t:'Schloss Esterházy – 100 Jahre Burgenland',s:'Esterhazy',cat:'g_at'},
+    {uid:'sv21',yt:'nqCGYkwBNNY',t:'Schloss Gobelsburg 2023',s:'POPUPMEDIA',cat:'g_at'},
+    {uid:'sv11',yt:'aUdwIEo53SU',t:'Robert Parker Wine Advocate Team',s:'Robert Parker Wine Advocate',cat:'g_fr'},
+    {uid:'sv12',yt:'uI8IwZsphCA',t:'The Truth about Robert Parker',s:'Bonner Private Wines',cat:'g_fr'},
+    {uid:'sv13',yt:'J-VkJlL_6Oc',t:'Field Trip to Avondale: Why Biodynamic Wine Matters',s:'Optimal Life',cat:'g_za'},
+    {uid:'sv14',yt:'QdvrWc2zZFU',t:'Embark on a Virtual De Toren Tasting Experience',s:'De Toren Private Cellar',cat:'g_za'},
+    {uid:'sv15',yt:'C3ioJD3Ggug',t:'Discover Chile’s Signature Grape: Carménère (WSET 3)',s:'Wine With Jimmy',cat:'g_nw'},
+    {uid:'sv16',yt:'dcuCMmwY2gE',t:'Energieeffiziente Weinproduktion in Chile',s:'DW Deutsch · Global Ideas',cat:'g_nw'},
+    {uid:'sv17',yt:'eAzvhF9yp4g',t:'7 Best Wineries & Bodegas in Mendoza, Argentina',s:'Before You Go',cat:'g_nw'},
+    {uid:'sv18',yt:'O9rcb6FBmxw',t:'Bodega Garzón in Wine Folly (Uruguay · Tannat)',s:'Bodega Garzón',cat:'g_nw'}]},
+  read:{cats:[
+    {id:'g_grund',name:'Grundlagen, Terroir & Verkostung'},{id:'g_ch',name:'Schweiz'},{id:'g_de',name:'Deutschland'},
+    {id:'g_at',name:'Österreich'},{id:'g_fr',name:'Frankreich'},{id:'g_es',name:'Spanien'},{id:'g_za',name:'Südafrika'},{id:'g_nw',name:'Neue Welt'}],
+   items:[
+    {uid:'sr01',u:'https://www.nzz.ch/zuerich/ld.1878368',t:'Am Zürichsee setzt Müller-Thurgau 1892 eine neue Traubensorte',s:'Neue Zürcher Zeitung',cat:'g_ch'},
+    {uid:'sr02',u:'https://bordeaux-kompass.de/klassifikation-der-grands-crus-im-medoc-von-1855/',t:'Klassifikation der Grands Crus im Médoc von 1855',s:'Bordeaux-Kompass',cat:'g_fr'},
+    {uid:'sr03',u:'https://www.stern.de/genuss/weingut-creation-',t:'Weingut Creation – wie ein Schweizer das beste Weingut Afrikas machte',s:'Stern',cat:'g_za'},
+    {uid:'sr04',u:'https://www.avondalewine.co.za/',t:'Avondale Wines – biodynamisches Weingut (Wein „La Luna")',s:'Avondale, Paarl (ZA)',cat:'g_za'}]}
+};
+let MEDIA=JSON.parse(JSON.stringify(SEED_MEDIA));
+
 async function fetchMedia(){
   try{
     const r=await fetch(MEDIA_API,{cache:'no-store'});
     if(!r.ok)throw 0;
     const d=await r.json();
-    USER_DATA.videos=Array.isArray(d.videos)?d.videos:[];
-    USER_DATA.reads=Array.isArray(d.reads)?d.reads:[];
-  }catch(e){/* Backend nicht erreichbar (z. B. lokale Vorschau) – nur Standardinhalte zeigen */}
+    if(d&&d.video&&d.read){MEDIA=d;}
+  }catch(e){/* Backend nicht erreichbar (Vorschau) – Seed-Daten anzeigen */}
 }
-function mergedVideoGroups(){
-  const groups=VIDEO_GROUPS.map(g=>({t:g.t,vids:g.vids.map(v=>({...v}))}));
-  USER_DATA.videos.forEach(uv=>{
-    let g=groups.find(x=>x.t.toLowerCase()===(uv.group||'').toLowerCase());
-    if(!g){g={t:uv.group||'Weitere Videos',vids:[]};groups.push(g);}
-    g.vids.push({...uv,user:true});
-  });
-  return groups;
+async function api(method,body){
+  const opt={method,headers:{'Content-Type':'application/json'}};
+  if(isAdmin())opt.headers['x-admin-token']=getAdmin();
+  if(body)opt.body=JSON.stringify(body);
+  const r=await fetch(MEDIA_API,opt);
+  const d=await r.json().catch(()=>null);
+  if(r.status===401){setAdmin('');renderMedia();throw {code:'unauthorized'};}
+  if(!r.ok)throw {code:(d&&d.error)||'error'};
+  if(d&&d.video&&d.read)MEDIA=d;
+  return d;
+}
+
+/* ---- Rendern ---- */
+function catName(type,id){const c=MEDIA[type].cats.find(x=>x.id===id);return c?c.name:'';}
+function videoCard(v,del){
+  const thumb=`<span class="vthumb" style="background-image:url('https://img.youtube.com/vi/${v.yt}/hqdefault.jpg')"></span>`;
+  const meta=`<div class="vmeta"><h4>${esc(v.t)}</h4><span>${esc(v.s||'')}</span></div>`;
+  if(del)return `<div class="vcard admin"><div class="itool">
+      <button title="Bearbeiten" onclick="openEdit('video','${v.uid}')">✎</button>
+      <button title="Löschen" onclick="delItem('video','${v.uid}')">✕</button></div>
+      <a href="https://www.youtube.com/watch?v=${v.yt}" target="_blank" rel="noopener">${thumb}${meta}</a></div>`;
+  return `<a class="vcard" href="https://www.youtube.com/watch?v=${v.yt}" target="_blank" rel="noopener">${thumb}${meta}</a>`;
+}
+function readCard(r,del){
+  const inner=`<span class="ri-ico">📄</span><div><h4>${esc(r.t)}</h4><span>${esc(r.s||'')}</span></div>`;
+  if(del)return `<div class="readitem admin"><a href="${esc(r.u)}" target="_blank" rel="noopener">${inner}</a>
+      <span class="itool inline"><button title="Bearbeiten" onclick="openEdit('read','${r.uid}')">✎</button>
+      <button title="Löschen" onclick="delItem('read','${r.uid}')">✕</button></span></div>`;
+  return `<a class="readitem" href="${esc(r.u)}" target="_blank" rel="noopener">${inner}<span class="ri-arr">↗</span></a>`;
+}
+function catBlock(type,cat,items,del){
+  const arr=MEDIA[type].cats, idx=arr.findIndex(c=>c.id===cat.id), last=idx===arr.length-1;
+  let tools='';
+  if(del)tools=`<span class="cat-tools">
+    <button class="ctool" title="Umbenennen" onclick="renameCat('${type}','${cat.id}')">✎</button>
+    <button class="ctool" title="Nach oben" ${idx===0?'disabled':''} onclick="moveCat('${type}','${cat.id}','up')">↑</button>
+    <button class="ctool" title="Nach unten" ${last?'disabled':''} onclick="moveCat('${type}','${cat.id}','down')">↓</button>
+    <button class="ctool" title="Eintrag hier hinzufügen" onclick="openAdd('${type}','${cat.id}')">＋</button>
+    ${items.length===0?`<button class="ctool ctool-del" title="Leere Kategorie löschen" onclick="delCat('${type}','${cat.id}')">🗑</button>`:''}
+  </span>`;
+  const inner=type==='video'
+    ? `<div class="vgrid">${items.map(v=>videoCard(v,del)).join('')}</div>`
+    : `<div class="readlist">${items.map(r=>readCard(r,del)).join('')}</div>`;
+  const body=items.length?inner:(del?`<div class="emptyhint">Noch keine Einträge – mit ＋ etwas hinzufügen.</div>`:'');
+  return `<div class="vgroup"><div class="cat-head"><h3>${esc(cat.name)}</h3>${tools}</div>${body}</div>`;
 }
 function renderMedia(){
   const b=document.getElementById('mediaBody');const del=isAdmin();
-  let html=mergedVideoGroups().map(g=>`<div class="vgroup"><h3>${esc(g.t)}</h3><div class="vgrid">${
-    g.vids.map(v=>v.user
-      ? `<div class="vcard user" onclick="window.open('https://www.youtube.com/watch?v=${v.id}','_blank','noopener')">
-          ${del?`<button class="vdel" title="Entfernen" onclick="event.stopPropagation();removeVideo('${v.uid}')">✕</button>`:''}
-          <span class="vthumb" style="background-image:url('https://img.youtube.com/vi/${v.id}/hqdefault.jpg')"></span>
-          <div class="vmeta"><h4>${esc(v.t)}</h4><span>${esc(v.s||'Eigenes Video')}</span><br><span class="utag">Community</span></div></div>`
-      : `<a class="vcard" href="https://www.youtube.com/watch?v=${v.id}" target="_blank" rel="noopener">
-          <span class="vthumb" style="background-image:url('https://img.youtube.com/vi/${v.id}/hqdefault.jpg')"></span>
-          <div class="vmeta"><h4>${esc(v.t)}</h4><span>${esc(v.s)}</span></div></a>`
-    ).join('')
-  }</div></div>`).join('');
-  const reads=READS.map(r=>({...r})).concat(USER_DATA.reads.map(r=>({...r,user:true})));
-  html+=`<div class="vgroup"><h3>Zum Weiterlesen</h3><div class="readlist">${
-    reads.map(r=>r.user
-      ? `<div class="readitem user" onclick="window.open('${esc(r.u)}','_blank','noopener')">
-          <span class="ri-ico">📄</span><div><h4>${esc(r.t)}</h4><span>${esc(r.s||'Eigene Quelle')}</span></div>
-          ${del?`<button class="vdel" style="position:static;margin-left:auto" title="Entfernen" onclick="event.stopPropagation();removeRead('${r.uid}')">✕</button>`:'<span class="ri-arr">↗</span>'}</div>`
-      : `<a class="readitem" href="${esc(r.u)}" target="_blank" rel="noopener">
-          <span class="ri-ico">📄</span><div><h4>${esc(r.t)}</h4><span>${esc(r.s)}</span></div><span class="ri-arr">↗</span></a>`
-    ).join('')
-  }</div></div>`;
+  let html='';
+  MEDIA.video.cats.forEach(cat=>{
+    const items=MEDIA.video.items.filter(i=>i.cat===cat.id);
+    if(!items.length&&!del)return;
+    html+=catBlock('video',cat,items,del);
+  });
+  if(del)html+=`<div class="add-cat-row"><button class="btn btn-ghost btn-sm" onclick="addCat('video')">＋ Neue Video-Kategorie</button></div>`;
+  html+=`<div class="media-sep"><span>Zum Weiterlesen</span></div>`;
+  MEDIA.read.cats.forEach(cat=>{
+    const items=MEDIA.read.items.filter(i=>i.cat===cat.id);
+    if(!items.length&&!del)return;
+    html+=catBlock('read',cat,items,del);
+  });
+  if(del)html+=`<div class="add-cat-row"><button class="btn btn-ghost btn-sm" onclick="addCat('read')">＋ Neue Weiterlesen-Kategorie</button></div>`;
   html+=`<div style="text-align:center;margin-top:30px"><span class="adminlink" onclick="toggleAdmin()">${del?'🔓 Admin aktiv – abmelden':'🔧 Admin-Modus'}</span></div>`;
   b.innerHTML=html;
 }
-/* ---- Modal ---- */
+
+/* ---- Modal-Grundlagen ---- */
 function closeModal(){document.getElementById('modal').classList.remove('show');}
-function openVideoModal(){
-  const segs=VIDEO_GROUPS.map(g=>`<option value="${esc(g.t)}">`).join('');
-  document.getElementById('modalCard').innerHTML=`
-    <h3>🎬 Video hinzufügen</h3>
-    <div class="msub">YouTube-Link einfügen und ein Gebiet wählen. Der Eintrag wird zentral gespeichert und ist danach für alle sichtbar.</div>
-    <div class="fld"><label><b>YouTube-Link *</b></label><input id="mvUrl" placeholder="https://www.youtube.com/watch?v=…"></div>
-    <div class="fld"><label>Titel *</label><input id="mvTitle" placeholder="z. B. Weinbau im Wallis"></div>
-    <div class="fld"><label>Quelle / Kanal</label><input id="mvSource" placeholder="z. B. SRF"></div>
-    <div class="fld"><label>Gebiet / Segment</label><input id="mvGroup" list="seglist" placeholder="wählen oder neu eingeben…"><datalist id="seglist">${segs}</datalist></div>
-    <div class="merr" id="mvErr"></div>
-    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button><button class="btn btn-gold btn-sm" id="mvSave" onclick="addVideo()">Hinzufügen</button></div>`;
-  document.getElementById('modal').classList.add('show');
-  setTimeout(()=>document.getElementById('mvUrl').focus(),50);
+function showModal(html){document.getElementById('modalCard').innerHTML=html;document.getElementById('modal').classList.add('show');}
+function catOptions(type,sel){return MEDIA[type].cats.map(c=>`<option value="${c.id}"${c.id===sel?' selected':''}>${esc(c.name)}</option>`).join('');}
+function busy(btn,on,label){if(!btn)return;btn.disabled=on;btn.textContent=on?'Speichern…':label;}
+
+/* ---- Eintrag hinzufügen (Community offen) ---- */
+function openAdd(type,presetCat){
+  const isV=type==='video';
+  showModal(`
+    <h3>${isV?'🎬 Video hinzufügen':'📄 Quelle hinzufügen'}</h3>
+    <div class="msub">${isV?'YouTube-Link':'Link'} + Titel eingeben und eine Kategorie wählen. Wird zentral gespeichert und ist für alle sichtbar.</div>
+    <div class="fld"><label><b>${isV?'YouTube-Link *':'Link *'}</b></label><input id="mUrl" placeholder="${isV?'https://www.youtube.com/watch?v=…':'https://…'}"></div>
+    <div class="fld"><label>Titel *</label><input id="mTitle" placeholder="${isV?'z. B. Weinbau im Wallis':'z. B. Geschichte des Rieslings'}"></div>
+    <div class="fld"><label>${isV?'Quelle / Kanal':'Quelle'}</label><input id="mSrc" placeholder="${isV?'z. B. SRF':'z. B. NZZ'}"></div>
+    <div class="fld"><label>Kategorie</label><select id="mCat">${catOptions(type,presetCat||MEDIA[type].cats[0].id)}</select></div>
+    <div class="merr" id="mErr"></div>
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-gold btn-sm" id="mSave" onclick="submitAdd('${type}')">Hinzufügen</button></div>`);
+  setTimeout(()=>document.getElementById('mUrl').focus(),50);
 }
-async function addVideo(){
-  const url=document.getElementById('mvUrl').value;
-  const title=document.getElementById('mvTitle').value.trim();
-  const src=document.getElementById('mvSource').value.trim();
-  const grp=document.getElementById('mvGroup').value.trim()||'Weitere Videos';
-  const err=document.getElementById('mvErr');
-  const id=parseYouTubeId(url);
-  if(!id){err.textContent='Bitte einen gültigen YouTube-Link einfügen.';return;}
-  if(!title){err.textContent='Bitte einen Titel eingeben.';return;}
-  const btn=document.getElementById('mvSave');btn.disabled=true;btn.textContent='Speichern…';
+async function submitAdd(type){
+  const isV=type==='video';
+  const url=document.getElementById('mUrl').value.trim();
+  const t=document.getElementById('mTitle').value.trim();
+  const s=document.getElementById('mSrc').value.trim();
+  const cat=document.getElementById('mCat').value;
+  const err=document.getElementById('mErr');
+  if(isV){if(!parseYouTubeId(url)){err.textContent='Bitte einen gültigen YouTube-Link einfügen.';return;}}
+  else{if(!/^https?:\/\/.+/i.test(url)){err.textContent='Bitte einen gültigen Link (mit https://) eingeben.';return;}}
+  if(!t){err.textContent='Bitte einen Titel eingeben.';return;}
+  const btn=document.getElementById('mSave');busy(btn,true);
   try{
-    const r=await fetch(MEDIA_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'video',item:{id,t:title,s:src,group:grp}})});
-    if(!r.ok)throw 0;
-    const d=await r.json();USER_DATA.videos=d.videos||USER_DATA.videos;USER_DATA.reads=d.reads||USER_DATA.reads;
-    closeModal();renderMedia();toast('🎬','Video hinzugefügt',title);
-  }catch(e){btn.disabled=false;btn.textContent='Hinzufügen';err.textContent='Speichern fehlgeschlagen. Funktioniert nur auf der veröffentlichten Netlify-Seite (nicht in der Vorschau).';}
+    await api('POST',{action:'add',type,item:isV?{url,t,s,cat}:{u:url,t,s,cat}});
+    closeModal();renderMedia();toast(isV?'🎬':'📄',(isV?'Video':'Quelle')+' hinzugefügt',t);
+  }catch(e){busy(btn,false,'Hinzufügen');err.textContent='Speichern fehlgeschlagen. Funktioniert nur auf der veröffentlichten Netlify-Seite.';}
 }
-function openReadModal(){
-  document.getElementById('modalCard').innerHTML=`
-    <h3>📄 Quelle hinzufügen</h3>
-    <div class="msub">Link zu einem Artikel oder einer Website. Der Eintrag wird zentral gespeichert und ist danach für alle sichtbar.</div>
-    <div class="fld"><label><b>Link *</b></label><input id="mrUrl" placeholder="https://…"></div>
-    <div class="fld"><label>Titel *</label><input id="mrTitle" placeholder="z. B. Geschichte des Rieslings"></div>
-    <div class="fld"><label>Quelle</label><input id="mrSource" placeholder="z. B. NZZ"></div>
-    <div class="merr" id="mrErr"></div>
-    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button><button class="btn btn-gold btn-sm" id="mrSave" onclick="addRead()">Hinzufügen</button></div>`;
-  document.getElementById('modal').classList.add('show');
-  setTimeout(()=>document.getElementById('mrUrl').focus(),50);
+
+/* ---- Eintrag bearbeiten / verschieben (Admin) ---- */
+function openEdit(type,uid){
+  const it=MEDIA[type].items.find(x=>x.uid===uid);if(!it)return;
+  const isV=type==='video';
+  const url=isV?('https://www.youtube.com/watch?v='+it.yt):it.u;
+  showModal(`
+    <h3>✎ ${isV?'Video':'Quelle'} bearbeiten</h3>
+    <div class="msub">Titel, Quelle und Kategorie ändern – über die Kategorie verschiebst du den Eintrag.</div>
+    <div class="fld"><label><b>${isV?'YouTube-Link *':'Link *'}</b></label><input id="mUrl" value="${esc(url)}"></div>
+    <div class="fld"><label>Titel *</label><input id="mTitle" value="${esc(it.t)}"></div>
+    <div class="fld"><label>${isV?'Quelle / Kanal':'Quelle'}</label><input id="mSrc" value="${esc(it.s||'')}"></div>
+    <div class="fld"><label>Kategorie</label><select id="mCat">${catOptions(type,it.cat)}</select></div>
+    <div class="merr" id="mErr"></div>
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-gold btn-sm" id="mSave" onclick="submitEdit('${type}','${uid}')">Speichern</button></div>`);
+  setTimeout(()=>document.getElementById('mTitle').focus(),50);
 }
-async function addRead(){
-  let url=document.getElementById('mrUrl').value.trim();
-  const title=document.getElementById('mrTitle').value.trim();
-  const src=document.getElementById('mrSource').value.trim();
-  const err=document.getElementById('mrErr');
-  if(!/^https?:\/\/.+/i.test(url)){err.textContent='Bitte einen gültigen Link (mit https://) eingeben.';return;}
-  if(!title){err.textContent='Bitte einen Titel eingeben.';return;}
-  const btn=document.getElementById('mrSave');btn.disabled=true;btn.textContent='Speichern…';
+async function submitEdit(type,uid){
+  const isV=type==='video';
+  const url=document.getElementById('mUrl').value.trim();
+  const t=document.getElementById('mTitle').value.trim();
+  const s=document.getElementById('mSrc').value.trim();
+  const cat=document.getElementById('mCat').value;
+  const err=document.getElementById('mErr');
+  if(isV){if(!parseYouTubeId(url)){err.textContent='Bitte einen gültigen YouTube-Link einfügen.';return;}}
+  else{if(!/^https?:\/\/.+/i.test(url)){err.textContent='Bitte einen gültigen Link eingeben.';return;}}
+  if(!t){err.textContent='Bitte einen Titel eingeben.';return;}
+  const btn=document.getElementById('mSave');busy(btn,true);
   try{
-    const r=await fetch(MEDIA_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'read',item:{u:url,t:title,s:src}})});
-    if(!r.ok)throw 0;
-    const d=await r.json();USER_DATA.videos=d.videos||USER_DATA.videos;USER_DATA.reads=d.reads||USER_DATA.reads;
-    closeModal();renderMedia();toast('📄','Quelle hinzugefügt',title);
-  }catch(e){btn.disabled=false;btn.textContent='Hinzufügen';err.textContent='Speichern fehlgeschlagen. Funktioniert nur auf der veröffentlichten Netlify-Seite (nicht in der Vorschau).';}
+    await api('POST',{action:'edit',type,uid,item:isV?{url,t,s,cat}:{u:url,t,s,cat}});
+    closeModal();renderMedia();toast('✅','Gespeichert',t);
+  }catch(e){busy(btn,false,'Speichern');err.textContent=e.code==='unauthorized'?'Admin-Passwort nötig.':'Speichern fehlgeschlagen (nur auf der Live-Seite).';}
 }
-async function apiDelete(type,id){
-  try{
-    const r=await fetch(MEDIA_API,{method:'DELETE',headers:{'Content-Type':'application/json','x-admin-token':getAdmin()},body:JSON.stringify({type,uid:id})});
-    if(r.status===401){toast('🔒','Kein Zugriff','Falsches Admin-Passwort');setAdmin('');renderMedia();return;}
-    if(!r.ok)throw 0;
-    const d=await r.json();USER_DATA.videos=d.videos||[];USER_DATA.reads=d.reads||[];renderMedia();
-  }catch(e){toast('⚠️','Fehler','Löschen fehlgeschlagen');}
+function delItem(type,uid){
+  const it=MEDIA[type].items.find(x=>x.uid===uid);
+  confirmBox('Eintrag „'+(it?it.t:'')+'" wirklich löschen?',async()=>{
+    try{await api('POST',{action:'del_item',type,uid});renderMedia();toast('🗑','Gelöscht','');}
+    catch(e){toast('⚠️','Fehler',e.code==='unauthorized'?'Admin nötig':'Löschen fehlgeschlagen');}
+  });
 }
-function removeVideo(id){apiDelete('video',id);}
-function removeRead(id){apiDelete('read',id);}
+
+/* ---- Kategorien verwalten (Admin) ---- */
+function addCat(type){
+  showModal(`
+    <h3>＋ Neue Kategorie</h3>
+    <div class="msub">Name der neuen ${type==='video'?'Video-':'Weiterlesen-'}Kategorie (z. B. „Italien", „Spanien").</div>
+    <div class="fld"><label>Name *</label><input id="mCatName" placeholder="Kategorie-Name"></div>
+    <div class="merr" id="mErr"></div>
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-gold btn-sm" id="mSave" onclick="submitCat('${type}')">Anlegen</button></div>`);
+  setTimeout(()=>document.getElementById('mCatName').focus(),50);
+}
+async function submitCat(type){
+  const name=document.getElementById('mCatName').value.trim();const err=document.getElementById('mErr');
+  if(!name){err.textContent='Bitte einen Namen eingeben.';return;}
+  const btn=document.getElementById('mSave');busy(btn,true);
+  try{await api('POST',{action:'add_cat',type,name});closeModal();renderMedia();toast('📁','Kategorie angelegt',name);}
+  catch(e){busy(btn,false,'Anlegen');err.textContent=e.code==='unauthorized'?'Admin-Passwort nötig.':'Fehlgeschlagen (nur auf der Live-Seite).';}
+}
+function renameCat(type,catId){
+  const c=MEDIA[type].cats.find(x=>x.id===catId);if(!c)return;
+  showModal(`
+    <h3>✎ Kategorie umbenennen</h3>
+    <div class="fld"><label>Name *</label><input id="mCatName" value="${esc(c.name)}"></div>
+    <div class="merr" id="mErr"></div>
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-gold btn-sm" id="mSave" onclick="submitRename('${type}','${catId}')">Speichern</button></div>`);
+  setTimeout(()=>{const el=document.getElementById('mCatName');el.focus();el.select();},50);
+}
+async function submitRename(type,catId){
+  const name=document.getElementById('mCatName').value.trim();const err=document.getElementById('mErr');
+  if(!name){err.textContent='Bitte einen Namen eingeben.';return;}
+  const btn=document.getElementById('mSave');busy(btn,true);
+  try{await api('POST',{action:'rename_cat',type,cat:catId,name});closeModal();renderMedia();toast('✅','Umbenannt',name);}
+  catch(e){busy(btn,false,'Speichern');err.textContent=e.code==='unauthorized'?'Admin-Passwort nötig.':'Fehlgeschlagen (nur auf der Live-Seite).';}
+}
+async function moveCat(type,catId,dir){
+  try{await api('POST',{action:'move_cat',type,cat:catId,dir});renderMedia();}
+  catch(e){toast('⚠️','Fehler',e.code==='unauthorized'?'Admin nötig':'Verschieben fehlgeschlagen');}
+}
+function delCat(type,catId){
+  const c=MEDIA[type].cats.find(x=>x.id===catId);
+  confirmBox('Kategorie „'+(c?c.name:'')+'" löschen? (nur leere Kategorien)',async()=>{
+    try{await api('POST',{action:'del_cat',type,cat:catId});renderMedia();toast('🗑','Kategorie gelöscht','');}
+    catch(e){toast('⚠️','Fehler',e.code==='cat_not_empty'?'Kategorie ist nicht leer':(e.code==='unauthorized'?'Admin nötig':'Fehlgeschlagen'));}
+  });
+}
+
+/* ---- Bestätigungs-Dialog ---- */
+function confirmBox(msg,onOk){
+  showModal(`<h3>Bestätigen</h3><div class="msub" style="margin-bottom:20px">${esc(msg)}</div>
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-gold btn-sm" id="mOk">Ja, ausführen</button></div>`);
+  document.getElementById('mOk').onclick=()=>{closeModal();onOk();};
+}
+
+/* ---- Admin-Modus ---- */
 function toggleAdmin(){
   if(isAdmin()){setAdmin('');renderMedia();toast('🔒','Admin-Modus beendet','');return;}
-  document.getElementById('modalCard').innerHTML=`
+  showModal(`
     <h3>🔧 Admin-Modus</h3>
-    <div class="msub">Zum Löschen von Community-Einträgen. Passwort = der Wert der Variable ADMIN_TOKEN aus deinen Netlify-Einstellungen.</div>
+    <div class="msub">Zum Verwalten von Kategorien und Einträgen. Passwort = deine Netlify-Variable ADMIN_TOKEN.</div>
     <div class="fld"><label>Admin-Passwort</label><input id="madm" type="password" placeholder="••••••••"></div>
     <div class="merr" id="madmErr"></div>
-    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button><button class="btn btn-gold btn-sm" onclick="doAdmin()">Aktivieren</button></div>`;
-  document.getElementById('modal').classList.add('show');
+    <div class="modal-foot"><button class="btn btn-ghost btn-sm" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-gold btn-sm" onclick="doAdmin()">Aktivieren</button></div>`);
   setTimeout(()=>document.getElementById('madm').focus(),50);
 }
 function doAdmin(){
   const v=document.getElementById('madm').value.trim();
   if(!v){document.getElementById('madmErr').textContent='Bitte Passwort eingeben.';return;}
-  setAdmin(v);closeModal();renderMedia();toast('🔓','Admin-Modus aktiv','Lösch-Buttons erscheinen jetzt');
+  setAdmin(v);closeModal();renderMedia();toast('🔓','Admin-Modus aktiv','Verwaltungs-Werkzeuge erscheinen jetzt');
 }
 
 /* Cellar */
