@@ -27,10 +27,41 @@ const CATS = [
   ['g_grund', 'Grundlagen, Terroir & Verkostung'], ['g_ch', 'Schweiz'], ['g_de', 'Deutschland'],
   ['g_at', 'Österreich'], ['g_fr', 'Frankreich'], ['g_es', 'Spanien'], ['g_za', 'Südafrika'], ['g_nw', 'Neue Welt'],
 ];
+// Seed-Version: bei neuen Standardinhalten erhöhen – sie fliessen beim Deploy
+// additiv in bereits bestehende Speicher ein (per uid, ohne Duplikate, ohne Nutzeränderungen zu überschreiben).
+const SEED_VERSION = 4;
+const ADD_VIDEOS = [
+  { uid: 'sv22', yt: 'uBPFULGRc0A', t: '40 Jahre Vinea Wachau – Kulturlandschaft Wachau', s: 'POPUPMEDIA', cat: 'g_at' },
+  { uid: 'sv23', yt: 'fCevQolgdNM', t: 'MASTERWEIN – Grüner Veltliner, Schloss Gobelsburg (Kamptal)', s: 'MASTERWEIN', cat: 'g_at' },
+];
+const ADD_READS = [
+  { uid: 'sr05', u: 'https://www.heinrich.at', t: 'Weingut Heinrich – „Salzberg" (Gols)', s: 'weingut-heinrich.at', cat: 'g_at' },
+  { uid: 'sr06', u: 'https://www.poeckl.at', t: 'Weingut Pöckl (Mönchhof)', s: 'poeckl.at', cat: 'g_at' },
+  { uid: 'sr07', u: 'https://www.falstaff.com/ld/w/weingut-knoll', t: 'Weingut Emmerich Knoll (Wachau)', s: 'Falstaff', cat: 'g_at' },
+  { uid: 'sr08', u: 'https://www.selection-schwander.ch/shop/oesterreich/weinviertel/weingut-prechtl/cuvee-pepi-gruener-veltliner-reserve-2025-weingut-prechtl-weinviertel-dac', t: 'Weingut Prechtl – Cuvée Pepi Grüner Veltliner Reserve', s: 'Selection Schwander', cat: 'g_at' },
+  { uid: 'sr09', u: 'https://www.selection-schwander.ch/shop/oesterreich/weinviertel/weingut-prechtl/gruener-veltliner-ried-altenberg-weingut-prechtl-weinviertel-dac', t: 'Weingut Prechtl – Grüner Veltliner Ried Altenberg', s: 'Selection Schwander', cat: 'g_at' },
+  { uid: 'sr10', u: 'https://vino-austria.ch/products/weingut-velich-apetlon-chardonnay-tiglat-2022', t: 'Weingut Velich – Chardonnay Tiglat (Apetlon)', s: 'vino-austria.ch', cat: 'g_at' },
+  { uid: 'sr11', u: 'https://www.kollwentz.at', t: 'Weingut Kollwentz (Grosshöflein)', s: 'kollwentz.at', cat: 'g_at' },
+  { uid: 'sr12', u: 'https://www.kracher.at', t: 'Weinlaubenhof Kracher (Illmitz)', s: 'kracher.at', cat: 'g_at' },
+  { uid: 'sr13', u: 'https://www.flaschenpost.ch/schwarz-rot-zweigelt_weingut-johann-schwarz', t: 'Weingut Schwarz – „Schwarz Rot" (Zweigelt), Andau', s: 'via Flaschenpost', cat: 'g_at' },
+  { uid: 'sr14', u: 'https://weinrieder.at/shop/favoriten/gruener-veltliner-alte-reben-2/', t: 'Weinrieder – Grüner Veltliner Alte Reben', s: 'weinrieder.at', cat: 'g_at' },
+  { uid: 'sr15', u: 'https://weinrieder.at/shop/ausgezeichnet/eiswein-riesling/', t: 'Weinrieder – Eiswein Riesling (Schneiderberg)', s: 'weinrieder.at', cat: 'g_at' },
+  { uid: 'sr16', u: 'https://www.falstaff.com/en/wines/weingut-zum-sternen-andreas-meier-co-ag-2018-pinot-noir-kloster-sion-klingnau', t: 'Kloster Sion Klingnau – Pinot Noir Reserve (Weingut zum Sternen)', s: 'Falstaff', cat: 'g_ch' },
+];
+function applyAdditions(d) {
+  const add = { video: ADD_VIDEOS, read: ADD_READS };
+  for (const type of ['video', 'read']) {
+    for (const it of add[type]) {
+      if (!d[type].items.some(x => x.uid === it.uid)) d[type].items.push({ ...it });
+    }
+  }
+  return d;
+}
 function seedData() {
   const cats = () => CATS.map(([id, name]) => ({ id, name }));
   return {
     v: 2,
+    sv: SEED_VERSION,
     video: {
       cats: cats(),
       items: [
@@ -55,6 +86,7 @@ function seedData() {
         { uid: 'sv16', yt: 'dcuCMmwY2gE', t: 'Energieeffiziente Weinproduktion in Chile', s: 'DW Deutsch · Global Ideas', cat: 'g_nw' },
         { uid: 'sv17', yt: 'eAzvhF9yp4g', t: '7 Best Wineries & Bodegas in Mendoza, Argentina', s: 'Before You Go', cat: 'g_nw' },
         { uid: 'sv18', yt: 'O9rcb6FBmxw', t: 'Bodega Garzón in Wine Folly (Uruguay · Tannat)', s: 'Bodega Garzón', cat: 'g_nw' },
+        ...ADD_VIDEOS.map(x => ({ ...x })),
       ],
     },
     read: {
@@ -64,6 +96,7 @@ function seedData() {
         { uid: 'sr02', u: 'https://bordeaux-kompass.de/klassifikation-der-grands-crus-im-medoc-von-1855/', t: 'Klassifikation der Grands Crus im Médoc von 1855', s: 'Bordeaux-Kompass', cat: 'g_fr' },
         { uid: 'sr03', u: 'https://www.stern.de/genuss/weingut-creation-', t: 'Weingut Creation – wie ein Schweizer das beste Weingut Afrikas machte', s: 'Stern', cat: 'g_za' },
         { uid: 'sr04', u: 'https://www.avondalewine.co.za/', t: 'Avondale Wines – biodynamisches Weingut (Wein „La Luna")', s: 'Avondale, Paarl (ZA)', cat: 'g_za' },
+        ...ADD_READS.map(x => ({ ...x })),
       ],
     },
   };
@@ -107,7 +140,17 @@ function normalize(d) {
 async function readData(store) {
   let d = null;
   try { d = await store.get(KEY, { type: 'json' }); } catch (e) {}
-  if (d && d.v === 2) return normalize(d);
+  if (d && d.v === 2) {
+    d = normalize(d);
+    if ((d.sv || 0) < SEED_VERSION) {
+      applyAdditions(d);
+      // Korrektur Velich-Link (nur wenn noch der alte, nicht nutzerbearbeitete Wert)
+      const vel = d.read.items.find(x => x.uid === 'sr10');
+      if (vel && vel.u === 'https://www.velich.at') { vel.u = 'https://vino-austria.ch/products/weingut-velich-apetlon-chardonnay-tiglat-2022'; vel.t = 'Weingut Velich – Chardonnay Tiglat (Apetlon)'; vel.s = 'vino-austria.ch'; }
+      d.sv = SEED_VERSION; try { await store.setJSON(KEY, d); } catch (e) {}
+    }
+    return d;
+  }
   const fresh = (d && (Array.isArray(d.videos) || Array.isArray(d.reads))) ? migrate(d) : seedData();
   try { await store.setJSON(KEY, fresh); } catch (e) {}
   return fresh;
